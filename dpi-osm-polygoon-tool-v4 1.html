@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>dpi OSM polygoon-tool</title>
+  <style>
+    :root{
+      --ink:#111111;
+      --ink-soft:#45423d;
+      --paper:#fffaf0;
+      --paper-soft:#f4ecd9;
+      --white:#ffffff;
+      --line:#ded3bd;
+      --line-dark:#c9b990;
+      --yellow:#ffd538;
+      --yellow-dark:#efbd20;
+      --blue:#5fc1cf;
+      --blue-dark:#0a7180;
+      --orange:#ef7d3a;
+      --green:#1d8a62;
+      --red:#c94d3d;
+      --shadow:0 18px 55px rgba(17,17,17,.12);
+      --radius:28px;
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    body{
+      margin:0;
+      color:var(--ink);
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 9% -7%, rgba(255,213,56,.58), transparent 32%),
+        radial-gradient(circle at 100% 2%, rgba(95,193,207,.30), transparent 34%),
+        linear-gradient(135deg, #fffaf0 0%, #f7eedc 100%);
+    }
+    body:before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.32;
+      background-image:
+        linear-gradient(30deg, rgba(17,17,17,.052) 12%, transparent 12.5%, transparent 87%, rgba(17,17,17,.052) 87.5%, rgba(17,17,17,.052)),
+        linear-gradient(150deg, rgba(17,17,17,.052) 12%, transparent 12.5%, transparent 87%, rgba(17,17,17,.052) 87.5%, rgba(17,17,17,.052)),
+        linear-gradient(30deg, rgba(17,17,17,.052) 12%, transparent 12.5%, transparent 87%, rgba(17,17,17,.052) 87.5%, rgba(17,17,17,.052)),
+        linear-gradient(150deg, rgba(17,17,17,.052) 12%, transparent 12.5%, transparent 87%, rgba(17,17,17,.052) 87.5%, rgba(17,17,17,.052));
+      background-size:96px 166px;
+      background-position:0 0,0 0,48px 83px,48px 83px;
+      -webkit-mask-image:linear-gradient(to bottom, black 0%, transparent 72%);
+      mask-image:linear-gradient(to bottom, black 0%, transparent 72%);
+    }
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .shell{max-width:1500px;margin:0 auto;padding:30px 24px 46px;position:relative;z-index:1}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px}
+    .brand{display:flex;align-items:center;gap:14px;font-size:30px;font-weight:950;letter-spacing:-.06em;line-height:1}
+    .brand-mark{width:48px;height:48px;border-radius:17px;background:var(--yellow);display:grid;place-items:center;box-shadow:inset -8px -8px 0 rgba(17,17,17,.07)}
+    .brand-mark span{width:21px;height:21px;background:var(--ink);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+    .tagline{font-size:13px;font-weight:850;letter-spacing:.11em;text-transform:uppercase;color:var(--blue-dark);background:rgba(255,255,255,.72);border:1px solid var(--line);padding:10px 14px;border-radius:999px}
+    .hero{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:22px;align-items:end;margin-bottom:22px}
+    h1{font-size:clamp(38px,5vw,76px);letter-spacing:-.07em;line-height:.92;margin:0 0 16px;font-weight:950;max-width:980px}
+    .hero p{font-size:18px;line-height:1.55;color:var(--ink-soft);margin:0;max-width:760px}
+    .steps{background:rgba(255,255,255,.74);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 10px 30px rgba(20,20,20,.06)}
+    .step{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+    .step:last-child{border-bottom:0}
+    .step-num{width:36px;height:36px;border-radius:13px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-weight:950}
+    .step b{display:block;margin-bottom:2px}
+    .step span{font-size:13.5px;color:var(--ink-soft);line-height:1.42}
+    .app-grid{display:grid;grid-template-columns:minmax(0,1fr) 465px;gap:22px;align-items:start}
+    .card{background:rgba(255,255,255,.88);border:1px solid rgba(222,211,189,.95);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .card-pad{padding:22px}
+    .card-head{padding:22px 24px 14px;display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+    .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:900;color:var(--blue-dark);margin-bottom:8px}
+    h2{margin:0;font-size:25px;letter-spacing:-.04em;line-height:1.08}
+    .muted{color:var(--ink-soft);font-size:14px;line-height:1.5;margin:8px 0 0}
+    .map-tools{padding:0 24px 18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .searchbox{position:relative;flex:1;min-width:270px}
+    .searchbox input{width:100%;height:50px;border:1px solid var(--line);border-radius:17px;padding:0 52px 0 16px;background:var(--paper);outline:none;color:var(--ink)}
+    .searchbox input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(95,193,207,.18)}
+    .searchbox button{position:absolute;right:5px;top:5px;height:40px;width:43px;border:0;border-radius:13px;background:var(--ink);color:var(--paper);font-weight:950}
+    .search-results{position:absolute;z-index:40;top:56px;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:17px;box-shadow:0 18px 42px rgba(20,20,20,.16);display:none;overflow:hidden;max-height:290px;overflow-y:auto}
+    .search-results button{position:static;width:100%;height:auto;background:#fff;color:var(--ink);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:13px 14px;text-align:left;font-weight:700;line-height:1.35}
+    .search-results button:hover{background:var(--paper-soft)}
+    .pill-button{height:50px;border:1px solid var(--line);background:var(--paper);border-radius:17px;padding:0 15px;font-weight:900;color:var(--ink)}
+    .pill-button:hover{border-color:var(--ink)}
+    .mapbox{height:660px;width:100%;position:relative;overflow:hidden;background:#ded7c9;border-top:1px solid var(--line);border-bottom:1px solid var(--line);touch-action:none;user-select:none;cursor:crosshair}
+    .tile-pane,.draw-pane{position:absolute;inset:0}
+    .tile-pane img{position:absolute;width:256px;height:256px;user-select:none;-webkit-user-drag:none;background:#d9d2c4}
+    .fallback-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(17,17,17,.08) 1px, transparent 1px),linear-gradient(90deg, rgba(17,17,17,.08) 1px, transparent 1px);background-size:42px 42px;opacity:.35}
+    .draw-pane{pointer-events:none;overflow:visible}
+    .draw-line{fill:rgba(95,193,207,.20);stroke:var(--blue-dark);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
+    .draw-line.open{fill:none;stroke-dasharray:9 8}
+    .vertex{fill:var(--yellow);stroke:var(--ink);stroke-width:3}
+    .vertex-label{font-size:12px;font-weight:950;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+    .map-controls{position:absolute;left:16px;top:16px;z-index:20;display:grid;gap:8px}
+    .map-control{width:42px;height:42px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.92);font-size:22px;font-weight:950;box-shadow:0 8px 20px rgba(17,17,17,.10)}
+    .map-attrib{position:absolute;right:10px;bottom:8px;z-index:15;background:rgba(255,255,255,.82);border:1px solid rgba(222,211,189,.8);border-radius:999px;padding:4px 9px;font-size:11px;color:var(--ink-soft)}
+    .map-attrib a{color:var(--blue-dark);text-decoration:none;font-weight:800}
+    .map-hint{position:absolute;left:16px;bottom:14px;z-index:15;max-width:560px;background:rgba(17,17,17,.82);color:#fff;border-radius:18px;padding:11px 13px;font-size:13px;line-height:1.35}
+    .map-footer{padding:16px 24px 22px;display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}
+    .status{font-size:14px;line-height:1.45;color:var(--ink-soft);max-width:700px}
+    .status strong{color:var(--ink)}
+    .toolbuttons{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{appearance:none;border:0;border-radius:16px;padding:13px 16px;font-weight:950;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px}
+    .btn-primary{background:var(--yellow);color:var(--ink);box-shadow:0 8px 0 rgba(17,17,17,.10)}
+    .btn-primary:hover{background:var(--yellow-dark);transform:translateY(1px);box-shadow:0 7px 0 rgba(17,17,17,.10)}
+    .btn-dark{background:var(--ink);color:var(--paper)}
+    .btn-soft{background:var(--paper-soft);color:var(--ink);border:1px solid var(--line)}
+    .btn-danger{background:#fff0ed;color:var(--red);border:1px solid #efbeb4}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+    .side{position:sticky;top:18px;display:grid;gap:18px}
+    .category-list{display:grid;gap:10px;margin-top:16px}
+    .category{border:1px solid var(--line);background:rgba(255,250,240,.75);border-radius:20px;overflow:hidden}
+    .category-head{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:12px 13px;border-bottom:1px solid transparent}
+    .category.open .category-head{border-bottom-color:var(--line)}
+    .cat-check{width:20px;height:20px;accent-color:var(--ink)}
+    .cat-title{border:0;background:transparent;text-align:left;padding:0;color:var(--ink)}
+    .cat-title b{display:block;font-size:15px;letter-spacing:-.01em}
+    .cat-title span{display:block;color:var(--ink-soft);font-size:12.5px;margin-top:2px}
+    .cat-count{font-size:12px;font-weight:950;color:var(--blue-dark);background:rgba(95,193,207,.15);border:1px solid rgba(95,193,207,.34);border-radius:999px;padding:5px 8px;white-space:nowrap}
+    .sub-list{display:none;padding:8px;gap:7px}
+    .category.open .sub-list{display:grid}
+    .sub-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border-radius:15px;border:1px solid transparent}
+    .sub-row:hover{background:#fff;border-color:var(--line)}
+    .sub-row input{width:18px;height:18px;accent-color:var(--green);cursor:pointer}
+    .sub-row .sub-info{min-width:0;cursor:pointer}
+    .sub-row .sub-info b{display:block;font-size:13.8px;margin-bottom:2px}
+    .sub-row .sub-info span{display:block;color:var(--ink-soft);font-size:12.4px;line-height:1.35}
+    .sub-dl-btn{background:rgba(255,255,255,.12);border:1px solid var(--line);color:#fff;border-radius:12px;padding:8px 11px;font-weight:900;font-size:12px;cursor:pointer;white-space:nowrap;letter-spacing:.02em}
+    .sub-dl-btn:hover:not(:disabled){background:var(--pink);border-color:var(--pink);color:#fff}
+    .sub-dl-btn:disabled{opacity:.42;cursor:not-allowed}
+    .sub-dl-btn.busy{background:var(--yellow);color:#210026;border-color:var(--yellow);pointer-events:none}
+    .sub-dl-btn.done{background:rgba(29,138,98,.28);border-color:#57c496;color:#a0ffb8}
+    .actions-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .notice{font-size:13.5px;line-height:1.48;color:var(--ink-soft);padding:13px 14px;background:#fff7db;border:1px solid #efd983;border-radius:16px;margin-top:14px;display:none}
+    .notice.error{background:#fff0ed;border-color:#efbeb4;color:#842318}
+    .notice.ok{background:#eefaf3;border-color:#b7e2c4;color:#15593c}
+    .result-box{margin-top:14px;background:var(--paper-soft);border:1px solid var(--line);border-radius:18px;padding:14px;display:none}
+    .result-head{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:8px}
+    .result-head b{font-size:14px}
+    .result-head span{font-size:12px;color:var(--ink-soft);font-weight:800}
+    .result-lines{display:grid;gap:6px;max-height:250px;overflow:auto;padding-right:3px}
+    .result-line{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:rgba(255,255,255,.72);border:1px solid var(--line);border-radius:13px;padding:8px 9px;font-size:13px}
+    .result-line strong{display:block;font-size:13px}
+    .result-line small{display:block;color:var(--ink-soft);font-size:11.5px;margin-top:1px}
+    .mini-btn{border:1px solid var(--line);background:#fff;border-radius:11px;font-size:12px;font-weight:900;padding:7px 9px;color:var(--ink)}
+    .mini-btn:hover{border-color:var(--ink)}
+    .query-details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+    .query-details summary{cursor:pointer;font-weight:950;color:var(--ink)}
+    pre{white-space:pre;overflow:auto;max-height:240px;background:#111;color:#f8f8f2;border-radius:16px;padding:14px;font-size:12px;line-height:1.5;margin:12px 0 0}
+    .diag-box{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.35);overflow:hidden}
+    .diag-head{padding:10px 14px;font-weight:900;font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.06);color:var(--ink);border-bottom:1px solid var(--line)}
+    .diag-log{max-height:260px;overflow-y:auto;padding:10px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.5;color:#e6e6e6}
+    .diag-row{padding:2px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+    .diag-row:last-child{border-bottom:0}
+    .diag-info{color:#cfe6ff}
+    .diag-warn{color:#ffd899}
+    .diag-error{color:#ff9c8a}
+    .diag-ok{color:#a0ffb8}
+    @media (max-width:1120px){.hero,.app-grid{grid-template-columns:1fr}.side{position:static}.mapbox{height:570px}}
+    @media (max-width:720px){.shell{padding:18px 12px 30px}.hero h1{font-size:42px}.steps{display:none}.card-head,.map-tools,.map-footer,.card-pad{padding-left:16px;padding-right:16px}.mapbox{height:520px}.toolbuttons,.toolbuttons .btn,.actions-row{width:100%;grid-template-columns:1fr}.tagline{display:none}}
+
+
+    /* dpi-kleurstijl + vaste kaart/rechterbalk */
+    :root{
+      --ink:#fff8ff;
+      --ink-soft:#dac3dc;
+      --paper:#22002a;
+      --paper-soft:#31063a;
+      --white:#2a0032;
+      --line:#7c1a5c;
+      --line-dark:#b01872;
+      --yellow:#f68b1f;
+      --yellow-dark:#ef4f23;
+      --blue:#df1d73;
+      --blue-dark:#ff82be;
+      --orange:#ef4f23;
+      --green:#e266a6;
+      --red:#ff5b35;
+      --pink:#df1d73;
+      --pink-soft:#e368a8;
+      --deep:#210026;
+      --shadow:0 24px 70px rgba(0,0,0,.34);
+    }
+    html,body{min-height:100%;}
+    body{
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 8% 96%, rgba(223,29,115,.72) 0 18%, transparent 33%),
+        linear-gradient(31deg, transparent 0 55%, rgba(239,79,35,.98) 55% 64%, rgba(246,139,31,.98) 64% 73%, transparent 73%),
+        linear-gradient(150deg, transparent 0 58%, rgba(223,29,115,.55) 58% 68%, transparent 68%),
+        var(--deep);
+      overflow-x:hidden;
+    }
+    body:before{
+      content:"";
+      position:fixed;
+      inset:-8% -10% auto auto;
+      width:62vw;
+      height:64vw;
+      pointer-events:none;
+      opacity:.72;
+      background:
+        linear-gradient(150deg, transparent 0 49.8%, rgba(223,29,115,.70) 50%, transparent 50.3%),
+        linear-gradient(30deg, transparent 0 49.8%, rgba(246,139,31,.45) 50%, transparent 50.3%),
+        radial-gradient(ellipse at 50% 48%, transparent 0 50%, rgba(223,29,115,.45) 50.3% 50.7%, transparent 51%);
+      -webkit-mask-image:none;
+      mask-image:none;
+      background-size:100% 100%;
+      z-index:0;
+    }
+    body:after{
+      content:"";
+      position:fixed;
+      left:-7vw;
+      bottom:-12vw;
+      width:52vw;
+      height:52vw;
+      border-radius:50%;
+      pointer-events:none;
+      background:rgba(226,102,166,.72);
+      mix-blend-mode:screen;
+      opacity:.62;
+      z-index:0;
+    }
+    .shell{max-width:1580px;position:relative;z-index:1;}
+    .brand{color:#fff;letter-spacing:-.045em;}
+    .brand:after{content:"dutch process innovators";font-size:16px;font-weight:850;letter-spacing:.01em;line-height:.95;max-width:120px;color:#fff;}
+    .brand-mark{background:linear-gradient(135deg,var(--orange),var(--pink) 56%,var(--pink-soft));box-shadow:none;}
+    .brand-mark span{background:rgba(255,255,255,.95);}
+    .tagline{color:#fff;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);}
+    h1{color:#fff;text-shadow:0 14px 45px rgba(0,0,0,.35);}
+    .hero p,.muted,.step span,.status,.cat-title span,.sub-row span,.result-head span,.result-line small{color:var(--ink-soft);}
+    .steps,.card{background:rgba(34,0,42,.88);border-color:rgba(223,29,115,.36);box-shadow:var(--shadow);backdrop-filter:blur(12px);}
+    .step{border-bottom-color:rgba(255,255,255,.12);}
+    .step-num{background:linear-gradient(135deg,var(--pink),var(--orange));color:#fff;}
+    .eyebrow{color:var(--pink-soft);}
+    .searchbox input,.pill-button{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#fff;}
+    .searchbox input::placeholder{color:rgba(255,255,255,.58);}
+    .searchbox input:focus{border-color:var(--pink-soft);box-shadow:0 0 0 4px rgba(223,29,115,.22);}
+    .searchbox button{background:var(--pink);color:#fff;}
+    .search-results{background:#2a0032;border-color:rgba(223,29,115,.42);}
+    .search-results button{background:#2a0032;color:#fff;border-bottom-color:rgba(255,255,255,.12);}
+    .search-results button:hover{background:#3b0a43;}
+    .mapbox{background:#1a001f;border-color:rgba(223,29,115,.34);}
+    .fallback-grid{background-image:linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);opacity:.28;}
+    .draw-line{fill:rgba(223,29,115,.20);stroke:#ffffff;stroke-width:4.2;filter:drop-shadow(0 6px 12px rgba(0,0,0,.28));}
+    .draw-line.open{fill:none;stroke:var(--pink-soft);}
+    .vertex{fill:var(--orange);stroke:#fff;}
+    .vertex-label{fill:#fff;}
+    .result-poly{fill:rgba(223,29,115,.22);stroke:#df1d73;stroke-width:3;stroke-linejoin:round;}
+    .result-line-geo{fill:none;stroke:#f68b1f;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
+    .result-point{fill:#f68b1f;stroke:#fff;stroke-width:2.6;filter:drop-shadow(0 4px 9px rgba(0,0,0,.45));}
+    .map-control{background:rgba(34,0,42,.92);border-color:rgba(255,255,255,.16);color:#fff;}
+    .map-attrib{background:rgba(34,0,42,.80);border-color:rgba(255,255,255,.16);color:var(--ink-soft);}
+    .map-attrib a{color:#fff;}
+    .map-hint{background:rgba(34,0,42,.88);border:1px solid rgba(223,29,115,.32);}
+    .btn-primary{background:linear-gradient(135deg,var(--pink),var(--orange));color:#fff;box-shadow:0 8px 0 rgba(0,0,0,.18);}
+    .btn-primary:hover{background:linear-gradient(135deg,#f02b85,var(--yellow-dark));}
+    .btn-dark{background:#fff;color:var(--deep);}
+    .btn-soft,.pill-button,.mini-btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff;}
+    .btn-danger{background:rgba(239,79,35,.14);color:#ffad94;border-color:rgba(239,79,35,.42);}
+    .category{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.13);}
+    .category.open .category-head{border-bottom-color:rgba(255,255,255,.12);}
+    .cat-check,.sub-row input{accent-color:var(--pink);}
+    .cat-title{color:#fff;}
+    .cat-count{background:rgba(223,29,115,.16);border-color:rgba(223,29,115,.42);color:#ffacd3;}
+    .sub-row:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);}
+    .notice{background:rgba(246,139,31,.13);border-color:rgba(246,139,31,.36);color:#ffd8b2;}
+    .notice.error{background:rgba(239,79,35,.13);border-color:rgba(239,79,35,.42);color:#ffb7a2;}
+    .notice.ok{background:rgba(223,29,115,.13);border-color:rgba(223,29,115,.42);color:#ffc1dc;}
+    .result-box{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);}
+    .result-head{border-bottom-color:rgba(255,255,255,.13);}
+    .result-line{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);}
+    .query-details{border-top-color:rgba(255,255,255,.13);}
+    pre{background:#120016;color:#fff;border:1px solid rgba(255,255,255,.12);}
+    .side{scrollbar-width:thin;scrollbar-color:var(--pink) rgba(255,255,255,.08);}
+    .side::-webkit-scrollbar{width:10px;}
+    .side::-webkit-scrollbar-track{background:rgba(255,255,255,.08);border-radius:999px;}
+    .side::-webkit-scrollbar-thumb{background:linear-gradient(var(--pink),var(--orange));border-radius:999px;}
+    @media (min-width:1121px){
+      .app-grid{grid-template-columns:minmax(0,1fr) 455px;align-items:start;}
+      .map-card{position:sticky;top:22px;align-self:start;}
+      .side{position:sticky;top:22px;max-height:calc(100vh - 44px);overflow-y:auto;overscroll-behavior:contain;padding-right:8px;}
+      .side .card:last-child{margin-bottom:2px;}
+      .mapbox{height:min(660px,calc(100vh - 292px));min-height:500px;}
+    }
+    @media (max-width:1120px){.side{position:static;max-height:none;overflow:visible;padding-right:0;}.map-card{position:static;}}
+
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <div class="brand" aria-label="dpi"><span class="brand-mark"><span></span></span><span>dpi</span></div>
+      <div class="tagline">creatief en voorspelbaar in resultaat</div>
+    </div>
+
+    <section class="hero">
+      <div>
+        <h1>Gebied tekenen. Data ophalen.</h1>
+        <p>Een eenvoudige OSM-tool voor omgevingsdata. De gebruiker tekent alleen een polygoon op de kaart en kiest daarna welke categorieen en subcategorieen nodig zijn.</p>
+      </div>
+      <div class="steps" aria-label="Stappenplan">
+        <div class="step"><div class="step-num">1</div><div><b>Zoek de locatie</b><span>Gebruik de zoekbalk of zoom en sleep op de kaart.</span></div></div>
+        <div class="step"><div class="step-num">2</div><div><b>Teken de polygoon</b><span>Klik op de kaart om hoekpunten te plaatsen. Sleep om de kaart te verplaatsen.</span></div></div>
+        <div class="step"><div class="step-num">3</div><div><b>Kies subcategorieen</b><span>Open een categorie en vink losse subcategorieen aan of uit.</span></div></div>
+      </div>
+    </section>
+
+    <section class="app-grid">
+      <div class="card map-card">
+        <div class="card-head">
+          <div>
+            <div class="eyebrow">Kaart</div>
+            <h2>Teken het projectgebied</h2>
+            <p class="muted">Klik voor ieder hoekpunt. Gebruik minimaal 3 punten. Dubbelklik of klik op <b>Polygoon gebruiken</b> om het gebied vast te leggen.</p>
+          </div>
+        </div>
+        <div class="map-tools">
+          <div class="searchbox">
+            <input id="searchInput" type="search" placeholder="Zoek plaats, straat of adres" autocomplete="off" />
+            <button id="searchBtn" type="button" title="Zoeken">Zoek</button>
+            <div id="searchResults" class="search-results"></div>
+          </div>
+          <button class="pill-button" id="locateBtn" type="button">Gebruik mijn locatie</button>
+        </div>
+        <div id="map" class="mapbox" role="application" aria-label="Kaart om een polygoon te tekenen">
+          <div id="tilePane" class="tile-pane"></div>
+          <div class="fallback-grid"></div>
+          <svg id="drawPane" class="draw-pane"></svg>
+          <div class="map-controls" aria-label="Kaartbediening">
+            <button class="map-control" id="zoomInBtn" type="button" title="Inzoomen">+</button>
+            <button class="map-control" id="zoomOutBtn" type="button" title="Uitzoomen">-</button>
+          </div>
+          <div class="map-hint">Klik om punten te plaatsen. Sleep de kaart om te verschuiven. De kaart gebruikt een lichte achtergrondkaart en geen externe kaartbibliotheek.</div>
+          <div class="map-attrib">Kaartdata © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Tiles © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a></div>
+        </div>
+        <div class="map-footer">
+          <div id="drawStatus" class="status"><strong>Nog geen gebied.</strong> Klik op de kaart om het eerste hoekpunt te plaatsen.</div>
+          <div class="toolbuttons">
+            <button class="btn btn-soft" id="undoBtn" type="button">Laatste punt terug</button>
+            <button class="btn btn-danger" id="clearBtn" type="button">Opnieuw tekenen</button>
+            <button class="btn btn-primary" id="finishBtn" type="button">Polygoon gebruiken</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side">
+        <div class="card card-pad">
+          <div class="eyebrow">Categorieen</div>
+          <h2>Kies wat je wilt ophalen</h2>
+          <p class="muted">Klik een categorie open en vink losse subcategorieen aan of uit. De technische OSM-tags staan bewust niet in beeld.</p>
+          <div id="categoryList" class="category-list"></div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="eyebrow">Downloads</div>
+          <h2>Per categorie downloaden</h2>
+          <p class="muted">Klik naast een subcategorie op <b>⬇ .geojson</b> om alleen die laag te downloaden. Ideaal om per laag apart in GIS te stylen. De knop is actief zodra je een polygoon van 3+ punten hebt.</p>
+          <p class="muted" id="selectionSummary" style="margin-top:8px">0 subcategorieen geselecteerd.</p>
+          <button class="btn btn-dark" id="fetchBtn" type="button" style="width:100%;margin-top:14px">Alles geselecteerd als ZIP</button>
+          <div id="message" class="notice"></div>
+          <div id="resultBox" class="result-box">
+            <div class="result-head"><b>Opgehaalde objecten</b><span id="resultTotal">0 resultaten</span></div>
+            <div id="resultLines" class="result-lines"></div>
+            <div class="actions-row">
+              <button class="btn btn-primary" id="downloadCombinedBtn" type="button">GeoJSON totaal</button>
+              <button class="btn btn-soft" id="downloadZipBtn" type="button">ZIP per subcategorie</button>
+            </div>
+          </div>
+          <div id="diagBox" class="diag-box" style="display:none">
+            <div class="diag-head">Diagnose</div>
+            <div id="diagLog" class="diag-log"></div>
+          </div>
+          <details class="query-details">
+            <summary>Geavanceerd: query bekijken</summary>
+            <pre id="queryOut"></pre>
+            <a id="turboLink" class="btn btn-soft" href="#" target="_blank" rel="noopener" style="margin-top:10px;width:100%">Open in Overpass Turbo</a>
+          </details>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+  const TILE_SIZE = 256;
+  const MIN_ZOOM = 3;
+  const MAX_ZOOM = 19;
+  const OVERPASS_ENDPOINTS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
+    'https://overpass.openstreetmap.fr/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+  ];
+  const CORS_PROXY_SERVICES = [
+    {name:'corsfix', build:url => 'https://proxy.corsfix.com/?' + url},
+    {name:'AllOrigins', build:url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)},
+    {name:'CodeTabs proxy', build:url => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)},
+    {name:'thingproxy', build:url => 'https://thingproxy.freeboard.io/fetch/' + url},
+    {name:'corsproxy.io', build:url => 'https://corsproxy.io/?url=' + encodeURIComponent(url)}
+  ];
+  const TIMEOUT_SECONDS = 180;
+  const FETCH_TIMEOUT_MS = 12000;
+  const PROXY_TIMEOUT_MS = 22000;
+  const JSONP_TIMEOUT_MS = 16000;
+
+  async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS){
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const baseHeaders = {'Accept':'application/json, text/plain, */*'};
+    try{
+      return await fetch(url, {
+        ...options,
+        headers: {...baseHeaders, ...(options.headers || {})},
+        signal:controller.signal,
+        credentials:'omit',
+        cache:'no-store'
+      });
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+
+  const CATEGORIES = [
+    {id:'stakeholders', title:'Belangrijke omgevingsfuncties', desc:'Handig voor stakeholderanalyse', open:true, subs:[
+      {id:'schools', label:'Scholen', desc:'Basisscholen, middelbare scholen, mbo/hbo/universiteit', default:true, filters:[{key:'amenity', values:['school','college','university']}]},
+      {id:'childcare', label:'Kinderopvang', desc:'Kinderdagverblijven en vergelijkbare voorzieningen', default:true, filters:[{key:'amenity', values:['kindergarten','childcare']}]},
+      {id:'care', label:'Zorgvoorzieningen', desc:'Huisartsen, tandartsen, klinieken en apotheken', default:true, filters:[{key:'amenity', values:['clinic','doctors','dentist','pharmacy']}]},
+      {id:'public_services', label:'Publieke voorzieningen', desc:'Gemeentehuis, bibliotheek, wijkcentrum en postkantoor', default:true, filters:[{key:'amenity', values:['townhall','library','community_centre','post_office','courthouse']}]}
+    ]},
+    {id:'traffic', title:'Verkeer en bereikbaarheid', desc:'OV, parkeren en mobiliteit', open:true, subs:[
+      {id:'bus_stops', label:'Bushaltes', desc:'Haltes voor busverkeer', default:true, filters:[{key:'highway', values:['bus_stop']}]},
+      {id:'rail_tram', label:'Trein, metro en tram', desc:'Stations en tram-/metrohaltes', default:true, filters:[{key:'railway', values:['station','halt','tram_stop','subway_entrance']}]},
+      {id:'parking', label:'Autoparkeren', desc:'Parkeerterreinen en parkeergarages', default:true, filters:[{key:'amenity', values:['parking','parking_space']}]},
+      {id:'bicycle_parking', label:'Fietsparkeren', desc:'Fietsparkeerplekken en stallingen', default:false, filters:[{key:'amenity', values:['bicycle_parking']}]},
+      {id:'charging', label:'Laadpunten', desc:'Oplaadpunten voor elektrische voertuigen', default:false, filters:[{key:'amenity', values:['charging_station']}]}
+    ]},
+    {id:'business', title:'Ondernemers en voorzieningen', desc:'Winkels, horeca en kantoren', open:true, subs:[
+      {id:'daily_shops', label:'Dagelijkse winkels', desc:'Supermarkt, buurtwinkel, bakker en slager', default:true, filters:[{key:'shop', values:['supermarket','convenience','bakery','butcher','greengrocer']}]},
+      {id:'shops_other', label:'Overige winkels', desc:'Retail, bloemist, kapper, wasserette en drogist', default:false, filters:[{key:'shop', values:['florist','hairdresser','beauty','laundry','chemist','clothes','shoes','doityourself','mobile_phone']}]},
+      {id:'horeca', label:'Horeca', desc:'Restaurants, cafes, fastfood, bars en pubs', default:true, filters:[{key:'amenity', values:['restaurant','cafe','fast_food','bar','pub']}]},
+      {id:'hotels', label:'Hotels en verblijf', desc:'Hotels, hostels, pensions en appartementen', default:false, filters:[{key:'tourism', values:['hotel','hostel','guest_house','motel','apartment']}]},
+      {id:'offices', label:'Kantoren en dienstverlening', desc:'Bedrijven, makelaars, banken, juristen en adviesdiensten', default:false, filters:[{key:'office', values:['company','estate_agent','financial','insurance','lawyer','consulting','government','association']}]}
+    ]},
+    {id:'safety', title:'Veiligheid en hulpdiensten', desc:'Noodvoorzieningen en hulpdiensten', open:false, subs:[
+      {id:'police_fire', label:'Politie en brandweer', desc:'Politiebureaus en brandweerkazernes', default:false, filters:[{key:'amenity', values:['police','fire_station']}]},
+      {id:'hospital', label:'Ziekenhuizen', desc:'Ziekenhuizen en grotere medische locaties', default:false, filters:[{key:'amenity', values:['hospital']}]},
+      {id:'ambulance', label:'Ambulanceposten', desc:'Ambulancestandplaatsen', default:false, filters:[{key:'emergency', values:['ambulance_station']}]},
+      {id:'aed', label:'AEDs', desc:'Defibrillatoren in de openbare ruimte', default:false, filters:[{key:'emergency', values:['defibrillator']}]},
+      {id:'assembly', label:'Verzamelplaatsen', desc:'Noodverzamelpunten waar beschikbaar in OSM', default:false, filters:[{key:'emergency', values:['assembly_point']}]}
+    ]},
+    {id:'public_space', title:'Openbare ruimte en recreatie', desc:'Groen, sport en verblijfsplekken', open:false, subs:[
+      {id:'playgrounds', label:'Speeltuinen', desc:'Speelplekken voor kinderen', default:true, filters:[{key:'leisure', values:['playground']}]},
+      {id:'parks', label:'Parken en groen', desc:'Parken en recreatiegroen', default:false, filters:[{key:'leisure', values:['park']},{key:'landuse', values:['recreation_ground','grass']}]},
+      {id:'sports', label:'Sportvoorzieningen', desc:'Sportvelden, sportcentra, fitness en zwembaden', default:false, filters:[{key:'leisure', values:['sports_centre','fitness_centre','pitch','swimming_pool']}]},
+      {id:'benches', label:'Bankjes', desc:'Bankjes in de openbare ruimte', default:false, filters:[{key:'amenity', values:['bench']}]},
+      {id:'waste_baskets', label:'Prullenbakken', desc:'Afvalbakken in de openbare ruimte', default:false, filters:[{key:'amenity', values:['waste_basket']}]},
+      {id:'toilets', label:'Openbare toiletten', desc:'Toiletten in of rond het gebied', default:false, filters:[{key:'amenity', values:['toilets']}]}
+    ]}
+  ];
+
+  const state = {
+    center:{lat:52.0907, lon:5.1214},
+    zoom:13,
+    points:[],
+    finalized:false,
+    selected:new Set(),
+    features:[],
+    grouped:{}
+  };
+
+  const els = {};
+  function $(id){return document.getElementById(id)}
+
+  function initEls(){
+    ['map','tilePane','drawPane','drawStatus','undoBtn','clearBtn','finishBtn','zoomInBtn','zoomOutBtn','searchInput','searchBtn','searchResults','locateBtn','categoryList','selectionSummary','fetchBtn','message','resultBox','resultTotal','resultLines','downloadCombinedBtn','downloadZipBtn','queryOut','turboLink','diagBox','diagLog'].forEach(id => els[id] = $(id));
+  }
+
+  function normalizeLon(lon){
+    while(lon < -180) lon += 360;
+    while(lon > 180) lon -= 360;
+    return lon;
+  }
+  function clampLat(lat){return Math.max(-85.0511, Math.min(85.0511, lat));}
+  function latLonToWorld(lat, lon, zoom){
+    lat = clampLat(lat);
+    const sin = Math.sin(lat * Math.PI / 180);
+    const scale = TILE_SIZE * Math.pow(2, zoom);
+    return {
+      x: (normalizeLon(lon) + 180) / 360 * scale,
+      y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale
+    };
+  }
+  function worldToLatLon(x, y, zoom){
+    const scale = TILE_SIZE * Math.pow(2, zoom);
+    const lon = x / scale * 360 - 180;
+    const n = Math.PI - 2 * Math.PI * y / scale;
+    const lat = 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+    return {lat:clampLat(lat), lon:normalizeLon(lon)};
+  }
+  function mapSize(){
+    return {w:els.map.clientWidth || 800, h:els.map.clientHeight || 600};
+  }
+  function centerWorld(){return latLonToWorld(state.center.lat, state.center.lon, state.zoom);}
+  function screenToLatLon(x, y){
+    const size = mapSize();
+    const c = centerWorld();
+    return worldToLatLon(c.x + x - size.w / 2, c.y + y - size.h / 2, state.zoom);
+  }
+  function latLonToScreen(lat, lon){
+    const size = mapSize();
+    const c = centerWorld();
+    const p = latLonToWorld(lat, lon, state.zoom);
+    return {x:p.x - c.x + size.w / 2, y:p.y - c.y + size.h / 2};
+  }
+
+  function renderMap(){
+    renderTiles();
+    renderPolygon();
+    updateStatus();
+  }
+
+  function renderTiles(){
+    const size = mapSize();
+    const c = centerWorld();
+    const topLeftX = c.x - size.w / 2;
+    const topLeftY = c.y - size.h / 2;
+    const startX = Math.floor(topLeftX / TILE_SIZE) - 1;
+    const endX = Math.floor((topLeftX + size.w) / TILE_SIZE) + 1;
+    const startY = Math.floor(topLeftY / TILE_SIZE) - 1;
+    const endY = Math.floor((topLeftY + size.h) / TILE_SIZE) + 1;
+    const tilesPerAxis = Math.pow(2, state.zoom);
+    let html = '';
+    for(let tx = startX; tx <= endX; tx++){
+      for(let ty = startY; ty <= endY; ty++){
+        if(ty < 0 || ty >= tilesPerAxis) continue;
+        const wrappedX = ((tx % tilesPerAxis) + tilesPerAxis) % tilesPerAxis;
+        const left = Math.round(tx * TILE_SIZE - topLeftX);
+        const top = Math.round(ty * TILE_SIZE - topLeftY);
+        const servers = ['a','b','c','d'];
+        const server = servers[Math.abs(wrappedX + ty) % servers.length];
+        const url = 'https://' + server + '.basemaps.cartocdn.com/light_all/' + state.zoom + '/' + wrappedX + '/' + ty + '.png';
+        html += '<img alt="" draggable="false" referrerpolicy="no-referrer" src="' + url + '" onerror="this.style.display=\'none\'" style="transform:translate(' + left + 'px,' + top + 'px)">';
+      }
+    }
+    els.tilePane.innerHTML = html;
+  }
+
+  function renderPolygon(){
+    const size = mapSize();
+    els.drawPane.setAttribute('width', size.w);
+    els.drawPane.setAttribute('height', size.h);
+    els.drawPane.setAttribute('viewBox', '0 0 ' + size.w + ' ' + size.h);
+    const pts = state.points.map(p => latLonToScreen(p.lat, p.lon));
+    let svg = renderFeatureLayer();
+    if(pts.length >= 2){
+      const pointString = pts.map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+      if(state.finalized && pts.length >= 3){
+        svg += '<polygon class="draw-line" points="' + pointString + '"></polygon>';
+      }else{
+        svg += '<polyline class="draw-line open" points="' + pointString + '"></polyline>';
+      }
+    }
+    pts.forEach((p, i) => {
+      svg += '<circle class="vertex" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="12"></circle>';
+      svg += '<text class="vertex-label" x="' + p.x.toFixed(1) + '" y="' + p.y.toFixed(1) + '">' + (i + 1) + '</text>';
+    });
+    els.drawPane.innerHTML = svg;
+  }
+
+  function renderFeatureLayer(){
+    if(!state.features || !state.features.length) return '';
+    let svg = '';
+    state.features.forEach(feature => {
+      const geom = feature.geometry;
+      if(!geom) return;
+      const label = escapeHtml(feature.properties.name || feature.properties.subcategorie || 'OSM-object');
+      if(geom.type === 'Point'){
+        const p = coordToScreen(geom.coordinates);
+        if(!p) return;
+        svg += '<circle class="result-point" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="7"><title>' + label + '</title></circle>';
+      }else if(geom.type === 'LineString'){
+        const line = coordsToPointString(geom.coordinates);
+        if(line) svg += '<polyline class="result-line-geo" points="' + line + '"><title>' + label + '</title></polyline>';
+      }else if(geom.type === 'Polygon'){
+        const ring = geom.coordinates && geom.coordinates[0];
+        const poly = coordsToPointString(ring || []);
+        if(poly) svg += '<polygon class="result-poly" points="' + poly + '"><title>' + label + '</title></polygon>';
+      }
+    });
+    return svg;
+  }
+
+  function coordToScreen(coord){
+    if(!Array.isArray(coord) || coord.length < 2) return null;
+    const lon = Number(coord[0]);
+    const lat = Number(coord[1]);
+    if(!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return latLonToScreen(lat, lon);
+  }
+
+  function coordsToPointString(coords){
+    if(!Array.isArray(coords) || coords.length < 2) return '';
+    return coords.map(coordToScreen).filter(Boolean).map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+  }
+
+  function updateStatus(){
+    const n = state.points.length;
+    els.undoBtn.disabled = n === 0;
+    els.clearBtn.disabled = n === 0;
+    els.finishBtn.disabled = n < 3;
+    if(n === 0){
+      els.drawStatus.innerHTML = '<strong>Nog geen gebied.</strong> Klik op de kaart om het eerste hoekpunt te plaatsen.';
+    }else if(state.finalized){
+      els.drawStatus.innerHTML = '<strong>Gebied vastgelegd.</strong> ' + n + ' hoekpunten. Je kunt nu gegevens ophalen of opnieuw tekenen.';
+    }else if(n < 3){
+      els.drawStatus.innerHTML = '<strong>' + n + ' punt' + (n === 1 ? '' : 'en') + ' geplaatst.</strong> Plaats minimaal ' + (3 - n) + ' extra punt' + (3 - n === 1 ? '' : 'en') + '.';
+    }else{
+      els.drawStatus.innerHTML = '<strong>' + n + ' hoekpunten geplaatst.</strong> Klik op Polygoon gebruiken of dubbelklik op de kaart.';
+    }
+    buildQueryPreview();
+  }
+
+  function addPointFromEvent(e){
+    if(state.finalized) return;
+    const rect = els.map.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const ll = screenToLatLon(x, y);
+    state.points.push({lat:ll.lat, lon:ll.lon});
+    renderMap();
+  }
+  function finishPolygon(){
+    if(state.points.length < 3){showMessage('Teken eerst minimaal 3 hoekpunten.', 'error'); return false;}
+    state.finalized = true;
+    renderMap();
+    if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
+    return true;
+  }
+  function clearPolygon(){
+    state.points = [];
+    state.finalized = false;
+    state.features = [];
+    state.grouped = {};
+    els.resultBox.style.display = 'none';
+    showMessage('', '');
+    renderMap();
+    if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
+    document.querySelectorAll('.sub-dl-btn').forEach(b => { b.classList.remove('done','busy'); b.textContent = '⬇ .geojson'; });
+  }
+  function undoPoint(){
+    if(!state.points.length) return;
+    state.finalized = false;
+    state.points.pop();
+    renderMap();
+    if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
+  }
+
+  function initMapEvents(){
+    let drag = null;
+    els.map.addEventListener('pointerdown', e => {
+      if(e.button !== 0) return;
+      if(e.target.closest('.map-control')) return;
+      els.map.setPointerCapture(e.pointerId);
+      drag = {
+        id:e.pointerId,
+        x:e.clientX,
+        y:e.clientY,
+        center:centerWorld(),
+        moved:false
+      };
+    });
+    els.map.addEventListener('pointermove', e => {
+      if(!drag || drag.id !== e.pointerId) return;
+      const dx = e.clientX - drag.x;
+      const dy = e.clientY - drag.y;
+      if(Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
+      if(drag.moved){
+        state.center = worldToLatLon(drag.center.x - dx, drag.center.y - dy, state.zoom);
+        renderMap();
+      }
+    });
+    els.map.addEventListener('pointerup', e => {
+      if(!drag || drag.id !== e.pointerId) return;
+      const wasMoved = drag.moved;
+      drag = null;
+      if(!wasMoved) addPointFromEvent(e);
+    });
+    els.map.addEventListener('dblclick', e => {
+      e.preventDefault();
+      finishPolygon();
+    });
+    let wheelAccum = 0;
+    let wheelResetTimer = null;
+    let lastWheelTs = 0;
+    const WHEEL_THRESHOLD = 100;
+    const WHEEL_COOLDOWN_MS = 120;
+    els.map.addEventListener('wheel', e => {
+      e.preventDefault();
+      const now = performance.now();
+      let dy = e.deltaY;
+      if(e.deltaMode === 1) dy *= 16;
+      else if(e.deltaMode === 2) dy *= 800;
+      wheelAccum += dy;
+      clearTimeout(wheelResetTimer);
+      wheelResetTimer = setTimeout(() => { wheelAccum = 0; }, 220);
+      if(Math.abs(wheelAccum) < WHEEL_THRESHOLD) return;
+      if(now - lastWheelTs < WHEEL_COOLDOWN_MS) return;
+      const delta = wheelAccum < 0 ? 1 : -1;
+      wheelAccum = 0;
+      lastWheelTs = now;
+      zoomAt(delta, e.offsetX, e.offsetY);
+    }, {passive:false});
+    els.zoomInBtn.addEventListener('click', () => zoomAt(1, mapSize().w / 2, mapSize().h / 2));
+    els.zoomOutBtn.addEventListener('click', () => zoomAt(-1, mapSize().w / 2, mapSize().h / 2));
+    els.undoBtn.addEventListener('click', undoPoint);
+    els.clearBtn.addEventListener('click', clearPolygon);
+    els.finishBtn.addEventListener('click', finishPolygon);
+    window.addEventListener('resize', renderMap);
+  }
+
+  function zoomAt(delta, sx, sy){
+    const oldZoom = state.zoom;
+    const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, oldZoom + delta));
+    if(newZoom === oldZoom) return;
+    const ll = screenToLatLon(sx, sy);
+    state.zoom = newZoom;
+    const p = latLonToWorld(ll.lat, ll.lon, newZoom);
+    const size = mapSize();
+    state.center = worldToLatLon(p.x - sx + size.w / 2, p.y - sy + size.h / 2, newZoom);
+    renderMap();
+  }
+
+  function renderCategories(){
+    CATEGORIES.forEach(cat => cat.subs.forEach(sub => { if(sub.default) state.selected.add(sub.id); }));
+    els.categoryList.innerHTML = CATEGORIES.map(cat => {
+      const selectedCount = cat.subs.filter(s => state.selected.has(s.id)).length;
+      return '<section class="category ' + (cat.open ? 'open' : '') + '" data-cat="' + cat.id + '">' +
+        '<div class="category-head">' +
+          '<input class="cat-check" type="checkbox" aria-label="Selecteer alles binnen ' + escapeHtml(cat.title) + '" data-cat-check="' + cat.id + '" ' + (selectedCount === cat.subs.length ? 'checked' : '') + '>' +
+          '<button class="cat-title" type="button" data-cat-title="' + cat.id + '"><b>' + escapeHtml(cat.title) + '</b><span>' + escapeHtml(cat.desc) + '</span></button>' +
+          '<span class="cat-count" id="count-' + cat.id + '">' + selectedCount + '/' + cat.subs.length + '</span>' +
+        '</div>' +
+        '<div class="sub-list">' + cat.subs.map(sub =>
+          '<div class="sub-row" data-sub-row="' + sub.id + '">' +
+            '<input type="checkbox" data-sub="' + sub.id + '" ' + (state.selected.has(sub.id) ? 'checked' : '') + ' title="Meenemen in ZIP-download">' +
+            '<div class="sub-info" data-sub-info="' + sub.id + '"><b>' + escapeHtml(sub.label) + '</b><span>' + escapeHtml(sub.desc) + '</span></div>' +
+            '<button class="sub-dl-btn" type="button" data-sub-dl="' + sub.id + '" title="Download alleen deze subcategorie als GeoJSON" disabled>⬇ .geojson</button>' +
+          '</div>'
+        ).join('') + '</div>' +
+      '</section>';
+    }).join('');
+
+    els.categoryList.querySelectorAll('[data-cat-title]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const box = els.categoryList.querySelector('[data-cat="' + btn.dataset.catTitle + '"]');
+        box.classList.toggle('open');
+      });
+    });
+    els.categoryList.querySelectorAll('[data-cat-check]').forEach(chk => {
+      chk.addEventListener('change', () => {
+        const cat = CATEGORIES.find(c => c.id === chk.dataset.catCheck);
+        cat.subs.forEach(sub => chk.checked ? state.selected.add(sub.id) : state.selected.delete(sub.id));
+        syncCategoryInputs();
+      });
+    });
+    els.categoryList.querySelectorAll('[data-sub]').forEach(chk => {
+      chk.addEventListener('change', () => {
+        chk.checked ? state.selected.add(chk.dataset.sub) : state.selected.delete(chk.dataset.sub);
+        syncCategoryInputs();
+      });
+    });
+    els.categoryList.querySelectorAll('[data-sub-info]').forEach(info => {
+      info.addEventListener('click', () => {
+        const row = info.closest('.sub-row');
+        const chk = row && row.querySelector('input[type=checkbox]');
+        if(!chk) return;
+        chk.checked = !chk.checked;
+        chk.dispatchEvent(new Event('change'));
+      });
+    });
+    els.categoryList.querySelectorAll('[data-sub-dl]').forEach(btn => {
+      btn.addEventListener('click', () => downloadSingleSubcategory(btn.dataset.subDl, btn));
+    });
+    syncCategoryInputs();
+    updateSubDownloadButtons();
+  }
+  function updateSubDownloadButtons(){
+    const ready = state.points.length >= 3;
+    document.querySelectorAll('.sub-dl-btn').forEach(btn => {
+      if(btn.classList.contains('busy')) return;
+      btn.disabled = !ready;
+      btn.title = ready ? 'Download alleen deze subcategorie als GeoJSON' : 'Teken eerst een polygoon van minimaal 3 punten';
+    });
+  }
+  async function downloadSingleSubcategory(subId, btn){
+    if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
+    if(!state.finalized) finishPolygon();
+    const sub = findSubcategory(subId);
+    if(!sub){ showMessage('Onbekende subcategorie: ' + subId, 'error'); return; }
+    const query = buildQueryForSubcategory(sub);
+    if(!query){ showMessage('Kan geen query bouwen voor ' + sub.label, 'error'); return; }
+    resetDiagnostics();
+    addDiagnostic('info', 'Download ' + sub.label + ' gestart...');
+    const originalLabel = btn ? btn.textContent : '';
+    if(btn){ btn.classList.add('busy'); btn.classList.remove('done'); btn.textContent = 'Bezig...'; }
+    try{
+      const result = await fetchOverpassJson(query);
+      const elements = (result.json && result.json.elements) ? result.json.elements : [];
+      addDiagnostic('ok', sub.label + ': ' + elements.length + ' OSM-objecten via ' + result.method);
+      const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
+      if(features.length === 0){
+        addDiagnostic('warn', sub.label + ': geen objecten binnen het polygoon.');
+        showMessage('Geen objecten gevonden voor ' + sub.label + ' in dit gebied.', 'error');
+        if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '⬇ .geojson'; }
+        return;
+      }
+      mergeFeaturesIntoState(features);
+      renderMap();
+      const geojson = {
+        type:'FeatureCollection',
+        name: sub.label,
+        metadata:{
+          generated: new Date().toISOString(),
+          source: 'OpenStreetMap via ' + result.method,
+          subcategorie: sub.label,
+          categorie: sub.category,
+          polygon: state.points.map(p => [p.lon, p.lat])
+        },
+        features
+      };
+      const filename = slugify(sub.category) + '__' + slugify(sub.label) + '.geojson';
+      downloadBlob(filename, JSON.stringify(geojson, null, 2), 'application/geo+json');
+      if(btn){ btn.classList.remove('busy'); btn.classList.add('done'); btn.textContent = '✓ ' + features.length + ' obj'; setTimeout(() => { btn.classList.remove('done'); btn.textContent = originalLabel || '⬇ .geojson'; }, 4000); }
+      showMessage('Gedownload: ' + filename + ' (' + features.length + ' objecten).', 'ok');
+    }catch(err){
+      const msg = err && err.message ? err.message : String(err);
+      addDiagnostic('error', sub.label + ' mislukt: ' + msg);
+      const directUrl = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+      addDiagnostic('info', 'Alle proxies zijn gefaald. Gebruik de nood-download knop hieronder om ' + sub.label + ' handmatig op te halen.');
+      showFallbackDownload(sub, directUrl, query);
+      showMessage('Download ' + sub.label + ' mislukt via alle servers en proxies. Gebruik de nood-download knop in het Diagnose-paneel.', 'error');
+      if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '⬇ .geojson'; }
+    }
+  }
+  function showFallbackDownload(sub, directUrl, query){
+    if(!els.diagBox) return;
+    els.diagBox.style.display = 'block';
+    let box = document.getElementById('fallbackBox');
+    if(!box){
+      box = document.createElement('div');
+      box.id = 'fallbackBox';
+      box.className = 'diag-row diag-warn';
+      box.style.marginTop = '10px';
+      els.diagLog.appendChild(box);
+    }
+    const safeName = slugify(sub.category) + '__' + slugify(sub.label);
+    const turboUrl = 'https://overpass-turbo.eu/?Q=' + encodeURIComponent(query) + '&R';
+    box.innerHTML = '<b>Nood-download voor ' + sub.label + ':</b><br>'
+      + '<a href="' + directUrl + '" target="_blank" rel="noopener" style="display:inline-block;margin:6px 6px 0 0;padding:7px 11px;background:#f68b1f;color:#210026;border-radius:10px;font-weight:900;text-decoration:none">➜ Open Overpass in nieuw tabblad</a>'
+      + '<a href="' + turboUrl + '" target="_blank" rel="noopener" style="display:inline-block;margin:6px 6px 0 0;padding:7px 11px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:10px;font-weight:900;text-decoration:none">➜ Open in Overpass Turbo</a>'
+      + '<br><small style="color:#dac3dc">Sla het resultaat op via je browser (Ctrl+S / Rechtermuisknop → Opslaan als) en hernoem naar <code>' + safeName + '.geojson</code>.</small>';
+  }
+  function findSubcategory(id){
+    for(const cat of CATEGORIES){
+      for(const sub of cat.subs){
+        if(sub.id === id) return {...sub, category: cat.title};
+      }
+    }
+    return null;
+  }
+  function elementToFeatureForSub(el, sub){
+    const tags = el.tags || {};
+    let geometry = null;
+    if(el.type === 'node' && Number.isFinite(el.lat) && Number.isFinite(el.lon)){
+      geometry = {type:'Point', coordinates:[el.lon, el.lat]};
+    }else if(Array.isArray(el.geometry) && el.geometry.length){
+      const coords = el.geometry.filter(p => p && Number.isFinite(p.lat) && Number.isFinite(p.lon)).map(p => [p.lon, p.lat]);
+      if(coords.length >= 2){
+        const first = coords[0], last = coords[coords.length - 1];
+        const closed = coords.length >= 4 && Math.abs(first[0] - last[0]) < 1e-10 && Math.abs(first[1] - last[1]) < 1e-10;
+        geometry = closed ? {type:'Polygon', coordinates:[coords]} : {type:'LineString', coordinates:coords};
+      }
+    }else if(el.center && Number.isFinite(el.center.lat) && Number.isFinite(el.center.lon)){
+      geometry = {type:'Point', coordinates:[el.center.lon, el.center.lat]};
+    }
+    if(!geometry) return null;
+    return {
+      type:'Feature',
+      properties:{
+        categorie: sub.category,
+        subcategorie: sub.label,
+        osm_type: el.type,
+        osm_id: el.id,
+        ...tags
+      },
+      geometry
+    };
+  }
+  function mergeFeaturesIntoState(features){
+    const key = f => (f.properties.osm_type || 'x') + '/' + (f.properties.osm_id || Math.random());
+    const seen = new Set(state.features.map(key));
+    features.forEach(f => { if(!seen.has(key(f))){ state.features.push(f); seen.add(key(f)); } });
+    const grouped = {};
+    state.features.forEach(f => {
+      const g = f.properties.subcategorie || 'Overig';
+      if(!grouped[g]) grouped[g] = [];
+      grouped[g].push(f);
+    });
+    state.grouped = grouped;
+  }
+  function resetDiagnostics(){
+    if(!els.diagLog) return;
+    els.diagLog.innerHTML = '';
+    els.diagBox.style.display = 'none';
+  }
+  function addDiagnostic(kind, text){
+    if(!els.diagLog) return;
+    els.diagBox.style.display = 'block';
+    const row = document.createElement('div');
+    row.className = 'diag-row diag-' + kind;
+    const time = new Date().toLocaleTimeString('nl-NL', {hour12:false});
+    row.textContent = '[' + time + '] ' + text;
+    els.diagLog.appendChild(row);
+    els.diagLog.scrollTop = els.diagLog.scrollHeight;
+  }
+
+  function syncCategoryInputs(){
+    CATEGORIES.forEach(cat => {
+      const selectedCount = cat.subs.filter(s => state.selected.has(s.id)).length;
+      const all = selectedCount === cat.subs.length;
+      const some = selectedCount > 0 && selectedCount < cat.subs.length;
+      const chk = els.categoryList.querySelector('[data-cat-check="' + cat.id + '"]');
+      if(chk){ chk.checked = all; chk.indeterminate = some; }
+      const count = $('count-' + cat.id);
+      if(count) count.textContent = selectedCount + '/' + cat.subs.length;
+      cat.subs.forEach(sub => {
+        const subChk = els.categoryList.querySelector('[data-sub="' + sub.id + '"]');
+        if(subChk) subChk.checked = state.selected.has(sub.id);
+      });
+    });
+    const selected = selectedSubcategories();
+    els.selectionSummary.textContent = selected.length + ' subcategorie' + (selected.length === 1 ? '' : 'en') + ' geselecteerd.';
+    buildQueryPreview();
+  }
+
+  function selectedSubcategories(){
+    const out = [];
+    CATEGORIES.forEach(cat => cat.subs.forEach(sub => {
+      if(state.selected.has(sub.id)) out.push({...sub, category:cat.title});
+    }));
+    return out;
+  }
+
+  function polyString(){
+    return state.points.map(p => p.lat.toFixed(6) + ' ' + p.lon.toFixed(6)).join(' ');
+  }
+  function buildQuery(){
+    const selected = selectedSubcategories();
+    if(state.points.length < 3 || selected.length === 0) return '';
+    const poly = polyString();
+    let lines = ['[out:json][timeout:' + TIMEOUT_SECONDS + '];','('];
+    selected.forEach(sub => {
+      sub.filters.forEach(f => {
+        const expr = f.values.length === 1 ? '=\"' + f.values[0] + '\"' : '~\"' + f.values.join('|') + '\"';
+        lines.push('  nwr[\"' + f.key + '\"' + expr + '](poly:\"' + poly + '\");');
+      });
+    });
+    lines.push(');','out geom;');
+    return lines.join('\n');
+  }
+
+  function buildQueryForSubcategory(sub){
+    if(state.points.length < 3 || !sub) return '';
+    const poly = polyString();
+    let lines = ['[out:json][timeout:' + TIMEOUT_SECONDS + '];','('];
+    sub.filters.forEach(f => {
+      const expr = f.values.length === 1 ? '="' + f.values[0] + '"' : '~"' + f.values.join('|') + '"';
+      lines.push('  nwr["' + f.key + '"' + expr + '](poly:"' + poly + '");');
+    });
+    lines.push(');','out geom;');
+    return lines.join('\n');
+  }
+
+  function endpointHost(endpoint){
+    try{return new URL(endpoint).hostname;}catch(_){return endpoint;}
+  }
+
+  function compactError(err){
+    const msg = err && err.message ? err.message : String(err || 'onbekende fout');
+    if(msg.includes('AbortError')) return 'timeout';
+    if(msg.includes('Failed to fetch') || msg.includes('NetworkError')) return 'browser/CORS-blokkade of netwerkfout';
+    return msg.replace(/\s+/g, ' ').slice(0, 210);
+  }
+
+  function overpassGetUrl(endpoint, query){
+    return endpoint + '?data=' + encodeURIComponent(query);
+  }
+
+  async function readJsonResponse(res, label){
+    const txt = await res.text();
+    if(!res.ok){
+      const shortTxt = txt ? txt.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,180) : '';
+      throw new Error(label + ' gaf status ' + res.status + (shortTxt ? ' - ' + shortTxt : ''));
+    }
+    try{
+      return JSON.parse(txt);
+    }catch(_){
+      throw new Error(label + ' gaf geen geldige JSON terug');
+    }
+  }
+
+  async function fetchOverpassGet(endpoint, query){
+    const host = endpointHost(endpoint);
+    const url = overpassGetUrl(endpoint, query);
+    const res = await fetchWithTimeout(url, {method:'GET', mode:'cors'}, FETCH_TIMEOUT_MS);
+    return readJsonResponse(res, host + ' direct GET');
+  }
+
+  async function fetchOverpassPost(endpoint, query){
+    const host = endpointHost(endpoint);
+    const body = new URLSearchParams();
+    body.set('data', query);
+    const res = await fetchWithTimeout(endpoint, {method:'POST', mode:'cors', body}, FETCH_TIMEOUT_MS);
+    return readJsonResponse(res, host + ' direct POST');
+  }
+
+  async function fetchOverpassViaProxy(endpoint, query, proxy){
+    const host = endpointHost(endpoint);
+    const sourceUrl = overpassGetUrl(endpoint, query);
+    const proxyUrl = proxy.build(sourceUrl);
+    const res = await fetchWithTimeout(proxyUrl, {method:'GET', mode:'cors'}, PROXY_TIMEOUT_MS);
+    return readJsonResponse(res, proxy.name + ' -> ' + host);
+  }
+
+  // JSONP wordt niet ondersteund door Overpass API; die attempt-tak is verwijderd.
+
+  async function fetchOverpassJson(query){
+    let lastError = '';
+    const attempts = [];
+    const directEndpoints = OVERPASS_ENDPOINTS.slice(0,5);
+    const proxyEndpoints = OVERPASS_ENDPOINTS.slice(0,3);
+    const preferProxy = location.protocol === 'file:' || location.origin === 'null';
+    function addDirectAttempts(){
+      for(const endpoint of directEndpoints){
+        attempts.push({kind:'direct-post', endpoint});
+        attempts.push({kind:'direct-get', endpoint});
+      }
+    }
+    function addProxyAttempts(){
+      for(const endpoint of proxyEndpoints){
+        for(const proxy of CORS_PROXY_SERVICES){
+          attempts.push({kind:'proxy', endpoint, proxy});
+        }
+      }
+    }
+    if(preferProxy){
+      addProxyAttempts();
+    }else{
+      addDirectAttempts();
+      addProxyAttempts();
+    }
+    for(const attempt of attempts){
+      const host = endpointHost(attempt.endpoint);
+      const label = (attempt.kind === 'proxy' && attempt.proxy ? attempt.proxy.name + ' -> ' : '') + host + ' (' + attempt.kind + ')';
+      try{
+        let json;
+        let method;
+        if(attempt.kind === 'direct-get'){
+          json = await fetchOverpassGet(attempt.endpoint, query);
+          method = host + ' direct GET';
+        }else if(attempt.kind === 'direct-post'){
+          json = await fetchOverpassPost(attempt.endpoint, query);
+          method = host + ' direct POST';
+        }else{
+          json = await fetchOverpassViaProxy(attempt.endpoint, query, attempt.proxy);
+          method = attempt.proxy.name + ' -> ' + host;
+        }
+        try{ addDiagnostic('ok', label + ' -> OK'); }catch(_){}
+        return {json, host, method};
+      }catch(err){
+        const errMsg = compactError(err);
+        lastError = (attempt.kind === 'proxy' && attempt.proxy ? attempt.proxy.name + ' -> ' : '') + host + ': ' + errMsg;
+        try{ addDiagnostic('warn', label + ' -> ' + errMsg); }catch(_){}
+      }
+    }
+    throw new Error(lastError || 'geen Overpass-server bereikbaar');
+  }
+
+  function buildQueryPreview(){
+    const q = buildQuery();
+    els.queryOut.textContent = q || '// Teken eerst een polygoon en selecteer minimaal een subcategorie.';
+    els.turboLink.href = q ? 'https://overpass-turbo.eu/?Q=' + encodeURIComponent(q) + '&R' : '#';
+  }
+
+  async function searchLocation(){
+    const q = els.searchInput.value.trim();
+    if(!q) return;
+    showMessage('Locatie zoeken...', '');
+    try{
+      const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=nl&q=' + encodeURIComponent(q);
+      const res = await fetchWithTimeout(url, {headers:{'Accept':'application/json,application/geo+json','Accept-Language':'nl,en'}}, 10000);
+      if(!res.ok) throw new Error('zoekdienst gaf status ' + res.status);
+      const data = await res.json();
+      if(!data.length){ showMessage('Geen locatie gevonden. Probeer een andere zoekterm.', 'error'); return; }
+      els.searchResults.innerHTML = data.map((r, i) => '<button type="button" data-result="' + i + '">' + escapeHtml(r.display_name) + '</button>').join('');
+      els.searchResults.style.display = 'block';
+      els.searchResults.querySelectorAll('[data-result]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = data[Number(btn.dataset.result)];
+          state.center = {lat:parseFloat(item.lat), lon:parseFloat(item.lon)};
+          state.zoom = 16;
+          els.searchResults.style.display = 'none';
+          showMessage('', '');
+          renderMap();
+        });
+      });
+    }catch(err){
+      showMessage('Zoeken lukt nu niet. Je kunt ook handmatig inzoomen en slepen op de kaart. Fout: ' + err.message, 'error');
+    }
+  }
+  function initSearch(){
+    els.searchBtn.addEventListener('click', searchLocation);
+    els.searchInput.addEventListener('keydown', e => { if(e.key === 'Enter') searchLocation(); });
+    document.addEventListener('click', e => {
+      if(!e.target.closest('.searchbox')) els.searchResults.style.display = 'none';
+    });
+    els.locateBtn.addEventListener('click', () => {
+      if(!navigator.geolocation){ showMessage('Je browser ondersteunt locatiebepaling niet.', 'error'); return; }
+      showMessage('Locatie bepalen...', '');
+      navigator.geolocation.getCurrentPosition(pos => {
+        state.center = {lat:pos.coords.latitude, lon:pos.coords.longitude};
+        state.zoom = 16;
+        showMessage('', '');
+        renderMap();
+      }, err => showMessage('Locatie bepalen is niet gelukt: ' + err.message, 'error'), {enableHighAccuracy:true, timeout:8000});
+    });
+  }
+
+  async function fetchOverpass(){
+    if(state.points.length < 3){ showMessage('Teken eerst een polygoon met minimaal 3 hoekpunten.', 'error'); return; }
+    if(!state.finalized) finishPolygon();
+    const selected = selectedSubcategories();
+    if(selected.length === 0){ showMessage('Selecteer minimaal een subcategorie.', 'error'); return; }
+
+    els.fetchBtn.disabled = true;
+    const oldText = els.fetchBtn.textContent;
+    els.fetchBtn.textContent = 'Bezig met ophalen...';
+    els.resultBox.style.display = 'none';
+    state.features = [];
+    state.grouped = {};
+    renderMap();
+
+    const allElements = [];
+    const failed = [];
+    const doneHosts = new Set();
+
+    try{
+      for(let i = 0; i < selected.length; i++){
+        const sub = selected[i];
+        const subQuery = buildQueryForSubcategory(sub);
+        if(!subQuery){ failed.push(sub.label + ': query kon niet worden opgebouwd'); continue; }
+
+        showMessage('Ophalen ' + (i + 1) + '/' + selected.length + ': ' + sub.label + '...', '');
+        try{
+          const result = await fetchOverpassJson(subQuery);
+          doneHosts.add(result.host + ' via ' + result.method);
+          const elements = (result.json && result.json.elements) ? result.json.elements : [];
+          allElements.push(...elements);
+          handleOverpassResult({elements:allElements});
+          showMessage('Ophalen ' + (i + 1) + '/' + selected.length + ' klaar: ' + sub.label + ' (' + elements.length + ' objecten).', 'ok');
+        }catch(err){
+          const msg = err && err.message ? err.message : String(err);
+          failed.push(sub.label + ': ' + msg);
+          handleOverpassResult({elements:allElements});
+        }
+      }
+
+      if(allElements.length === 0 && failed.length){
+        showMessage('Ophalen is niet gelukt. De tool probeert nu per subcategorie en zonder de onstabiele Russische Overpass-server, maar de browser of de Overpass-servers blokkeren het verzoek nog steeds. Probeer een kleiner gebied of open de query via Overpass Turbo. Laatste fout: ' + failed[failed.length - 1], 'error');
+        return;
+      }
+
+      if(failed.length){
+        showMessage('Gedeeltelijk klaar. ' + state.features.length + ' objecten opgehaald en op de kaart getekend. Niet opgehaald: ' + failed.slice(0,3).join(' | ') + (failed.length > 3 ? ' | +' + (failed.length - 3) + ' meer' : '') + '.', '');
+      }else{
+        const via = Array.from(doneHosts).join(', ');
+        showMessage('Klaar. ' + state.features.length + ' objecten zijn opgehaald en direct op de kaart getekend' + (via ? ' (' + via + ')' : '') + '.', 'ok');
+      }
+    }finally{
+      els.fetchBtn.disabled = false;
+      els.fetchBtn.textContent = oldText;
+    }
+  }
+
+  function handleOverpassResult(json){
+    const unique = new Map();
+    (json.elements || []).forEach(el => unique.set(el.type + '/' + el.id, el));
+    const features = Array.from(unique.values()).map(elementToFeature).filter(Boolean);
+    state.features = features;
+    const grouped = {};
+    features.forEach(f => {
+      const key = f.properties.subcategorie || 'Overig';
+      if(!grouped[key]) grouped[key] = [];
+      grouped[key].push(f);
+    });
+    state.grouped = grouped;
+    renderResults();
+    renderMap();
+  }
+
+  function elementToFeature(el){
+    const tags = el.tags || {};
+    const match = matchSubcategory(tags);
+    let geometry = null;
+    if(el.type === 'node' && Number.isFinite(el.lat) && Number.isFinite(el.lon)){
+      geometry = {type:'Point', coordinates:[el.lon, el.lat]};
+    }else if(Array.isArray(el.geometry) && el.geometry.length){
+      const coords = el.geometry.filter(p => p && Number.isFinite(p.lat) && Number.isFinite(p.lon)).map(p => [p.lon, p.lat]);
+      if(coords.length >= 2){
+        const first = coords[0], last = coords[coords.length - 1];
+        const closed = coords.length >= 4 && Math.abs(first[0] - last[0]) < 1e-10 && Math.abs(first[1] - last[1]) < 1e-10;
+        geometry = closed ? {type:'Polygon', coordinates:[coords]} : {type:'LineString', coordinates:coords};
+      }
+    }else if(el.center && Number.isFinite(el.center.lat) && Number.isFinite(el.center.lon)){
+      geometry = {type:'Point', coordinates:[el.center.lon, el.center.lat]};
+    }
+    if(!geometry) return null;
+    return {
+      type:'Feature',
+      properties:{
+        categorie:match ? match.category : 'Overig',
+        subcategorie:match ? match.label : 'Overig',
+        osm_type:el.type,
+        osm_id:el.id,
+        ...tags
+      },
+      geometry
+    };
+  }
+
+  function matchSubcategory(tags){
+    const selected = selectedSubcategories();
+    for(const sub of selected){
+      for(const f of sub.filters){
+        if(tags[f.key] && f.values.includes(tags[f.key])) return sub;
+      }
+    }
+    return null;
+  }
+
+  function renderResults(){
+    const entries = Object.entries(state.grouped).sort((a,b) => b[1].length - a[1].length);
+    els.resultTotal.textContent = state.features.length + ' resultaat' + (state.features.length === 1 ? '' : 'en');
+    els.resultLines.innerHTML = entries.length ? entries.map(([label, feats]) =>
+      '<div class="result-line"><div><strong>' + escapeHtml(label) + '</strong><small>' + feats.length + ' object' + (feats.length === 1 ? '' : 'en') + '</small></div><button class="mini-btn" type="button" data-download-sub="' + escapeHtml(label) + '">GeoJSON</button></div>'
+    ).join('') : '<div class="result-line"><div><strong>Geen objecten gevonden</strong><small>Vergroot het gebied of kies meer subcategorieen.</small></div></div>';
+    els.resultLines.querySelectorAll('[data-download-sub]').forEach(btn => {
+      btn.addEventListener('click', () => downloadSubcategory(btn.dataset.downloadSub));
+    });
+    els.resultBox.style.display = 'block';
+  }
+
+  function featureCollection(features){return {type:'FeatureCollection', features:features};}
+  function downloadCombined(){
+    if(!state.features.length){ showMessage('Er zijn nog geen resultaten om te downloaden.', 'error'); return; }
+    downloadBlob('osm-omgevingsdata.geojson', JSON.stringify(featureCollection(state.features), null, 2), 'application/geo+json');
+  }
+  function downloadSubcategory(label){
+    const features = state.grouped[label] || [];
+    if(!features.length) return;
+    downloadBlob(slugify(label) + '.geojson', JSON.stringify(featureCollection(features), null, 2), 'application/geo+json');
+  }
+  function downloadZip(){
+    const entries = Object.entries(state.grouped).filter(([,features]) => features.length);
+    if(!entries.length){ showMessage('Er zijn nog geen resultaten om te downloaden.', 'error'); return; }
+    const files = entries.map(([label, features]) => ({name:slugify(label) + '.geojson', content:JSON.stringify(featureCollection(features), null, 2)}));
+    const blob = makeZip(files);
+    downloadBlob('osm-omgevingsdata-per-subcategorie.zip', blob, 'application/zip');
+  }
+  function downloadBlob(filename, data, type){
+    const blob = data instanceof Blob ? data : new Blob([data], {type:type || 'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function makeZip(files){
+    const enc = new TextEncoder();
+    const localParts = [];
+    const centralParts = [];
+    let offset = 0;
+    const now = new Date();
+    const dostime = ((now.getHours() & 31) << 11) | ((now.getMinutes() & 63) << 5) | ((Math.floor(now.getSeconds() / 2)) & 31);
+    const dosdate = (((now.getFullYear() - 1980) & 127) << 9) | (((now.getMonth() + 1) & 15) << 5) | (now.getDate() & 31);
+    files.forEach(file => {
+      const name = enc.encode(file.name);
+      const data = enc.encode(file.content);
+      const crc = crc32(data);
+      const local = new Uint8Array(30 + name.length);
+      const view = new DataView(local.buffer);
+      view.setUint32(0, 0x04034b50, true);
+      view.setUint16(4, 20, true);
+      view.setUint16(6, 0, true);
+      view.setUint16(8, 0, true);
+      view.setUint16(10, dostime, true);
+      view.setUint16(12, dosdate, true);
+      view.setUint32(14, crc, true);
+      view.setUint32(18, data.length, true);
+      view.setUint32(22, data.length, true);
+      view.setUint16(26, name.length, true);
+      view.setUint16(28, 0, true);
+      local.set(name, 30);
+      localParts.push(local, data);
+      const central = new Uint8Array(46 + name.length);
+      const cv = new DataView(central.buffer);
+      cv.setUint32(0, 0x02014b50, true);
+      cv.setUint16(4, 20, true);
+      cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0, true);
+      cv.setUint16(10, 0, true);
+      cv.setUint16(12, dostime, true);
+      cv.setUint16(14, dosdate, true);
+      cv.setUint32(16, crc, true);
+      cv.setUint32(20, data.length, true);
+      cv.setUint32(24, data.length, true);
+      cv.setUint16(28, name.length, true);
+      cv.setUint16(30, 0, true);
+      cv.setUint16(32, 0, true);
+      cv.setUint16(34, 0, true);
+      cv.setUint16(36, 0, true);
+      cv.setUint32(38, 0, true);
+      cv.setUint32(42, offset, true);
+      central.set(name, 46);
+      centralParts.push(central);
+      offset += local.length + data.length;
+    });
+    const centralSize = centralParts.reduce((sum, p) => sum + p.length, 0);
+    const end = new Uint8Array(22);
+    const ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(4, 0, true);
+    ev.setUint16(6, 0, true);
+    ev.setUint16(8, files.length, true);
+    ev.setUint16(10, files.length, true);
+    ev.setUint32(12, centralSize, true);
+    ev.setUint32(16, offset, true);
+    ev.setUint16(20, 0, true);
+    return new Blob([...localParts, ...centralParts, end], {type:'application/zip'});
+  }
+  let CRC_TABLE = null;
+  function crc32(data){
+    if(!CRC_TABLE){
+      CRC_TABLE = new Uint32Array(256);
+      for(let i=0;i<256;i++){
+        let c = i;
+        for(let k=0;k<8;k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+        CRC_TABLE[i] = c >>> 0;
+      }
+    }
+    let crc = 0xffffffff;
+    for(let i=0;i<data.length;i++) crc = CRC_TABLE[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+
+  function slugify(s){
+    return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'subcategorie';
+  }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  function showMessage(text, type){
+    if(!text){ els.message.style.display = 'none'; els.message.textContent = ''; els.message.className = 'notice'; return; }
+    els.message.textContent = text;
+    els.message.className = 'notice' + (type ? ' ' + type : '');
+    els.message.style.display = 'block';
+  }
+
+  function init(){
+    initEls();
+    renderCategories();
+    initMapEvents();
+    initSearch();
+    els.fetchBtn.addEventListener('click', fetchOverpass);
+    els.downloadCombinedBtn.addEventListener('click', downloadCombined);
+    els.downloadZipBtn.addEventListener('click', downloadZip);
+    renderMap();
+    if(location.protocol === 'file:' || location.origin === 'null'){
+      showMessage('Let op: dit bestand draait vanaf je lokale schijf (file://). Overpass en de gratis CORS-proxies blokkeren dan de meeste downloads. Beste oplossing: open een terminal in de map van dit bestand en draai "python -m http.server" of "npx serve", en open dan http://localhost:8000 in je browser. Als er toch een fout komt, verschijnt in het Diagnose-paneel een "Nood-download" knop waarmee je de data handmatig kunt ophalen.', '');
+    }
+  }
+  init();
+  </script>
+</body>
+</html>
