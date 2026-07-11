@@ -52,15 +52,13 @@
     }
     button,input{font:inherit}
     button{cursor:pointer}
-    .shell{position:fixed;inset:0;padding:0;margin:0;z-index:1;pointer-events:none}
-    .shell > *{pointer-events:auto}
-    .topbar{position:fixed;top:14px;left:16px;right:76px;display:flex;justify-content:space-between;align-items:center;gap:18px;margin:0;z-index:30;pointer-events:none}
-    .topbar > *{pointer-events:auto}
+    .shell{max-width:1500px;margin:0 auto;padding:30px 24px 46px;position:relative;z-index:1}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px}
     .brand{display:flex;align-items:center;gap:14px;font-size:30px;font-weight:950;letter-spacing:-.06em;line-height:1}
     .brand-mark{width:48px;height:48px;border-radius:17px;background:var(--yellow);display:grid;place-items:center;box-shadow:inset -8px -8px 0 rgba(17,17,17,.07)}
     .brand-mark span{width:21px;height:21px;background:var(--ink);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
     .tagline{font-size:13px;font-weight:850;letter-spacing:.11em;text-transform:uppercase;color:var(--blue-dark);background:rgba(255,255,255,.72);border:1px solid var(--line);padding:10px 14px;border-radius:999px}
-    .hero{display:none}
+    .hero{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:22px;align-items:end;margin-bottom:22px}
     h1{font-size:clamp(38px,5vw,76px);letter-spacing:-.07em;line-height:.92;margin:0 0 16px;font-weight:950;max-width:980px}
     .hero p{font-size:18px;line-height:1.55;color:var(--ink-soft);margin:0;max-width:760px}
     .steps{background:rgba(255,255,255,.74);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 10px 30px rgba(20,20,20,.06)}
@@ -69,17 +67,10 @@
     .step-num{width:36px;height:36px;border-radius:13px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-weight:950}
     .step b{display:block;margin-bottom:2px}
     .step span{font-size:13.5px;color:var(--ink-soft);line-height:1.42}
-    .app-grid{position:fixed;inset:0;display:block;gap:0;pointer-events:none}
-    .app-grid > *{pointer-events:auto}
-    .card{background:rgba(34,0,42,.94);border:1px solid rgba(222,211,189,.15);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    .card-pad{padding:18px}
-    .card-head{padding:18px 20px 12px;display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
-    .map-card{position:fixed;inset:0;border-radius:0;border:0;background:transparent;box-shadow:none;overflow:hidden}
-    .map-card > .card-head{display:none}
-    .map-card > .map-footer{display:none}
-    .map-card > .map-tools{position:fixed;top:76px;left:16px;z-index:25;padding:0;max-width:420px;width:calc(100vw - 32px);flex-wrap:wrap}
-    .map-card > .map-tools .searchbox{flex:1 1 240px}
-    .map-card > .mapbox{position:fixed;inset:0;height:100vh;border:0;border-radius:0}
+    .app-grid{display:grid;grid-template-columns:minmax(0,1fr) 465px;gap:22px;align-items:start}
+    .card{background:rgba(255,255,255,.88);border:1px solid rgba(222,211,189,.95);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .card-pad{padding:22px}
+    .card-head{padding:22px 24px 14px;display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
     .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:900;color:var(--blue-dark);margin-bottom:8px}
     h2{margin:0;font-size:25px;letter-spacing:-.04em;line-height:1.08}
     .muted{color:var(--ink-soft);font-size:14px;line-height:1.5;margin:8px 0 0}
@@ -108,10 +99,6 @@
     .map-attrib a{color:var(--blue-dark);text-decoration:none;font-weight:800}
     .map-hint{position:absolute;left:16px;bottom:14px;z-index:15;max-width:560px;background:rgba(17,17,17,.82);color:#fff;border-radius:18px;padding:11px 13px;font-size:13px;line-height:1.35}
     .map-footer{padding:16px 24px 22px;display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}
-    .float-footer{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:26;display:flex;gap:10px;align-items:center;background:rgba(34,0,42,.94);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:10px 14px;box-shadow:0 12px 34px rgba(0,0,0,.32);max-width:calc(100vw - 32px);flex-wrap:wrap;justify-content:center}
-    .float-footer .status{color:#fff;font-size:13px;line-height:1.35;margin:0 4px;max-width:360px}
-    .float-footer .toolbuttons{display:flex;gap:8px;flex-wrap:wrap}
-    .float-footer .btn{min-height:38px;padding:9px 12px;font-size:13px}
     .status{font-size:14px;line-height:1.45;color:var(--ink-soft);max-width:700px}
     .status strong{color:var(--ink)}
     .toolbuttons{display:flex;gap:10px;flex-wrap:wrap}
@@ -122,45 +109,23 @@
     .btn-soft{background:var(--paper-soft);color:var(--ink);border:1px solid var(--line)}
     .btn-danger{background:#fff0ed;color:var(--red);border:1px solid #efbeb4}
     .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
-    .side{position:fixed;top:76px;right:16px;width:min(430px, calc(100vw - 32px));max-height:calc(100vh - 110px);display:grid;gap:14px;z-index:20;transition:transform .35s cubic-bezier(.4,.05,.2,1);overflow-y:auto;padding-right:6px}
-    .side.collapsed{transform:translateX(calc(100% + 30px))}
-    .side-toggle{position:fixed;top:14px;right:16px;z-index:36;width:44px;height:44px;border:1px solid rgba(255,255,255,.22);border-radius:12px;background:rgba(34,0,42,.92);color:#fff;font-weight:900;font-size:19px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.32)}
-    .side-toggle:hover{background:rgba(60,10,74,.96)}
-    .category-list{display:grid;gap:6px;margin-top:12px}
-    .category{border:1px solid var(--line);background:rgba(255,250,240,.75);border-radius:14px;overflow:hidden}
-    .category-head{display:grid;grid-template-columns:24px 1fr auto auto;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid transparent}
-    .cat-dl-btn{background:rgba(255,255,255,.10);border:1px solid var(--line);color:#fff;border-radius:8px;padding:4px 8px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap}
-    .cat-dl-btn:hover:not(:disabled){background:var(--pink);border-color:var(--pink)}
-    .cat-dl-btn:disabled{opacity:.42;cursor:not-allowed}
-    .cat-dl-btn.busy{background:var(--yellow);color:#210026;border-color:var(--yellow);pointer-events:none}
-    .cat-dl-btn.done{background:rgba(29,138,98,.28);border-color:#57c496;color:#a0ffb8}
-    .cat-search{position:relative;margin:10px 0 4px}
-    .cat-search input{width:100%;height:38px;padding:0 34px 0 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;font-size:13px;outline:none}
-    .cat-search input:focus{border-color:var(--pink-soft);box-shadow:0 0 0 3px rgba(223,29,115,.22)}
-    .cat-search input::placeholder{color:rgba(255,255,255,.55)}
-    .cat-search .cat-search-clear{position:absolute;right:6px;top:6px;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:#fff;font-weight:900;font-size:16px;cursor:pointer;opacity:.7}
-    .cat-search .cat-search-clear:hover{opacity:1;background:rgba(255,255,255,.10)}
-    .sub-row.hidden,.category.hidden{display:none !important}
-    .zip-all-btn{width:100%;margin-top:8px;background:linear-gradient(135deg,var(--pink),var(--orange));color:#fff;border:0;border-radius:12px;padding:11px 14px;font-weight:900;font-size:13.5px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.15)}
-    .zip-all-btn:hover:not(:disabled){transform:translateY(1px);box-shadow:0 5px 0 rgba(0,0,0,.15)}
-    .zip-all-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
-    .cat-title b{font-size:13.5px;line-height:1.2}
-    .cat-title span{font-size:11.5px;margin-top:1px;line-height:1.25}
+    .side{position:sticky;top:18px;display:grid;gap:18px}
+    .category-list{display:grid;gap:10px;margin-top:16px}
+    .category{border:1px solid var(--line);background:rgba(255,250,240,.75);border-radius:20px;overflow:hidden}
+    .category-head{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:12px 13px;border-bottom:1px solid transparent}
     .category.open .category-head{border-bottom-color:var(--line)}
     .cat-check{width:20px;height:20px;accent-color:var(--ink)}
     .cat-title{border:0;background:transparent;text-align:left;padding:0;color:var(--ink)}
     .cat-title b{display:block;font-size:15px;letter-spacing:-.01em}
     .cat-title span{display:block;color:var(--ink-soft);font-size:12.5px;margin-top:2px}
     .cat-count{font-size:12px;font-weight:950;color:var(--blue-dark);background:rgba(95,193,207,.15);border:1px solid rgba(95,193,207,.34);border-radius:999px;padding:5px 8px;white-space:nowrap}
-    .sub-list{display:none;padding:2px 4px 4px;gap:1px}
+    .sub-list{display:none;padding:8px;gap:7px}
     .category.open .sub-list{display:grid}
-    .sub-row{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:center;padding:4px 6px;border-radius:9px;border:1px solid transparent}
-    .sub-row:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10)}
-    .sub-row input{width:16px;height:16px;accent-color:var(--green);cursor:pointer}
-    .sub-row .sub-info{min-width:0;cursor:pointer}
-    .sub-row .sub-info b{display:block;font-size:12.8px;margin-bottom:0;line-height:1.2}
-    .sub-row .sub-info span{display:block;color:var(--ink-soft);font-size:11.3px;line-height:1.3}
-    .sub-dl-btn{background:rgba(255,255,255,.10);border:1px solid var(--line);color:#fff;border-radius:8px;padding:4px 7px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;letter-spacing:.01em}
+    .sub-row{display:grid;grid-template-columns:30px 1fr;gap:9px;align-items:start;padding:10px;border-radius:15px;border:1px solid transparent;cursor:pointer}
+    .sub-row:hover{background:#fff;border-color:var(--line)}
+    .sub-row input{width:18px;height:18px;margin-top:2px;accent-color:var(--green)}
+    .sub-row b{display:block;font-size:13.8px;margin-bottom:2px}
+    .sub-row span{display:block;color:var(--ink-soft);font-size:12.4px;line-height:1.35}
     .actions-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
     .notice{font-size:13.5px;line-height:1.48;color:var(--ink-soft);padding:13px 14px;background:#fff7db;border:1px solid #efd983;border-radius:16px;margin-top:14px;display:none}
     .notice.error{background:#fff0ed;border-color:#efbeb4;color:#842318}
@@ -178,15 +143,6 @@
     .query-details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
     .query-details summary{cursor:pointer;font-weight:950;color:var(--ink)}
     pre{white-space:pre;overflow:auto;max-height:240px;background:#111;color:#f8f8f2;border-radius:16px;padding:14px;font-size:12px;line-height:1.5;margin:12px 0 0}
-    .diag-box{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.35);overflow:hidden}
-    .diag-head{padding:10px 14px;font-weight:900;font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.06);color:var(--ink);border-bottom:1px solid var(--line)}
-    .diag-log{max-height:220px;overflow-y:auto;padding:10px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.5;color:#e6e6e6}
-    .diag-row{padding:2px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
-    .diag-row:last-child{border-bottom:0}
-    .diag-info{color:#cfe6ff}
-    .diag-warn{color:#ffd899}
-    .diag-error{color:#ff9c8a}
-    .diag-ok{color:#a0ffb8}
     @media (max-width:1120px){.hero,.app-grid{grid-template-columns:1fr}.side{position:static}.mapbox{height:570px}}
     @media (max-width:720px){.shell{padding:18px 12px 30px}.hero h1{font-size:42px}.steps{display:none}.card-head,.map-tools,.map-footer,.card-pad{padding-left:16px;padding-right:16px}.mapbox{height:520px}.toolbuttons,.toolbuttons .btn,.actions-row{width:100%;grid-template-columns:1fr}.tagline{display:none}}
 
@@ -255,10 +211,10 @@
     }
     .shell{max-width:1580px;position:relative;z-index:1;}
     .brand{color:#fff;letter-spacing:-.045em;}
-    .brand:after{content:""}
+    .brand:after{content:"dutch process innovators";font-size:16px;font-weight:850;letter-spacing:.01em;line-height:.95;max-width:120px;color:#fff;}
     .brand-mark{background:linear-gradient(135deg,var(--orange),var(--pink) 56%,var(--pink-soft));box-shadow:none;}
     .brand-mark span{background:rgba(255,255,255,.95);}
-    .tagline{color:#fff;background:rgba(34,0,42,.72);border-color:rgba(255,255,255,.22);backdrop-filter:blur(8px);}
+    .tagline{color:#fff;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);}
     h1{color:#fff;text-shadow:0 14px 45px rgba(0,0,0,.35);}
     .hero p,.muted,.step span,.status,.cat-title span,.sub-row span,.result-head span,.result-line small{color:var(--ink-soft);}
     .steps,.card{background:rgba(34,0,42,.88);border-color:rgba(223,29,115,.36);box-shadow:var(--shadow);backdrop-filter:blur(12px);}
@@ -308,23 +264,30 @@
     .side::-webkit-scrollbar{width:10px;}
     .side::-webkit-scrollbar-track{background:rgba(255,255,255,.08);border-radius:999px;}
     .side::-webkit-scrollbar-thumb{background:linear-gradient(var(--pink),var(--orange));border-radius:999px;}
-    /* Fullscreen overrides — moet winnen van eerdere sticky/inline layout */
+    @media (min-width:1121px){
+      .app-grid{grid-template-columns:minmax(0,1fr) 455px;align-items:start;}
+      .map-card{position:sticky;top:22px;align-self:start;}
+      .side{position:sticky;top:22px;max-height:calc(100vh - 44px);overflow-y:auto;overscroll-behavior:contain;padding-right:8px;}
+      .side .card:last-child{margin-bottom:2px;}
+      .mapbox{height:min(660px,calc(100vh - 292px));min-height:500px;}
+    }
+    @media (max-width:1120px){.side{position:static;max-height:none;overflow:visible;padding-right:0;}.map-card{position:static;}}
+
+      /* ========== V7 fullscreen + control-card + floating diag + toast + mobile ========== */
     @media (min-width:1px){
-      .app-grid{display:block !important;grid-template-columns:none !important;pointer-events:none !important;position:fixed !important;inset:0 !important;}
+      .app-grid{display:block !important;position:fixed !important;inset:0 !important;pointer-events:none !important;}
       .app-grid > *{pointer-events:auto !important;}
-      .map-card{position:fixed !important;inset:0 !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;border-radius:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;overflow:hidden !important;align-self:auto !important;padding:0 !important;}
+      .map-card{position:fixed !important;inset:0 !important;border-radius:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;overflow:hidden !important;padding:0 !important;}
       .map-card > .card-head{display:none !important;}
       .map-card > .map-footer{display:none !important;}
-      .map-card > .map-tools{position:fixed !important;top:80px !important;left:16px !important;right:auto !important;z-index:25 !important;padding:0 !important;max-width:420px !important;width:calc(100vw - 32px) !important;flex-wrap:wrap !important;background:transparent !important;}
-      .map-card > .mapbox{position:fixed !important;inset:0 !important;height:100vh !important;width:100vw !important;min-height:100vh !important;max-height:none !important;border:0 !important;border-radius:0 !important;z-index:1 !important;}
-      .side{position:fixed !important;top:80px !important;right:16px !important;left:auto !important;bottom:auto !important;width:min(430px, calc(100vw - 32px)) !important;max-height:calc(100vh - 110px) !important;overflow-y:auto !important;overflow-x:hidden !important;padding-right:6px !important;z-index:22 !important;display:grid !important;gap:14px !important;background:transparent !important;}
+      .map-card > .map-tools{display:none !important;}
+      .map-card > .mapbox{position:fixed !important;inset:0 !important;height:100vh !important;width:100vw !important;border:0 !important;border-radius:0 !important;z-index:1 !important;}
+      .side{position:fixed !important;top:80px !important;right:16px !important;left:auto !important;width:min(430px, calc(100vw - 32px)) !important;max-height:calc(100vh - 110px) !important;overflow-y:auto !important;overflow-x:hidden !important;padding-right:6px !important;z-index:22 !important;display:grid !important;gap:14px !important;background:transparent !important;}
       .side.collapsed{transform:translateX(calc(100% + 30px)) !important;}
       .side-toggle{position:fixed !important;top:14px !important;right:16px !important;z-index:36 !important;width:44px !important;height:44px !important;display:grid !important;place-items:center !important;}
-      .topbar{z-index:40 !important;}
+      .topbar{display:none !important;}
       body{overflow:hidden !important;}
     }
-
-      /* v7 unified control-card, hidden topbar, floating diag & toast */
     .control-card{position:fixed !important;top:14px !important;left:16px !important;z-index:28 !important;width:min(360px, calc(100vw - 32px));background:rgba(34,0,42,.94);border:1px solid rgba(255,255,255,.16);border-radius:16px;box-shadow:0 12px 34px rgba(0,0,0,.32);padding:10px;display:grid;gap:8px;backdrop-filter:blur(10px)}
     .control-card .map-tools{position:static !important;top:auto !important;left:auto !important;padding:0 !important;max-width:none !important;width:auto !important;display:flex !important;gap:6px;background:transparent !important;flex-wrap:nowrap}
     .control-card .searchbox{flex:1;min-width:0}
@@ -339,7 +302,6 @@
     .control-card .cc-status.ready{background:rgba(29,138,98,.18);border-color:#57c496;color:#c7ffde}
     .control-card .cc-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
     .control-card .cc-actions .btn{min-height:34px;padding:6px 8px;font-size:12px;box-shadow:none;border-radius:9px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .control-card .cc-actions .btn:disabled{opacity:.38;cursor:not-allowed}
     .map-attrib{position:fixed !important;right:12px !important;bottom:12px !important;left:auto !important;background:rgba(34,0,42,.7) !important;border:1px solid rgba(255,255,255,.14) !important;color:rgba(255,255,255,.6) !important;font-size:10.5px !important;padding:4px 8px !important;z-index:15}
     .map-attrib a{color:rgba(255,255,255,.85) !important}
     .fallback-grid{display:none !important}
@@ -347,29 +309,73 @@
     .topbar{display:none !important}
     .map-controls{position:fixed !important;top:66px !important;right:16px !important;left:auto !important;z-index:35 !important;flex-direction:column;display:flex !important;gap:6px}
     .map-controls .map-control{width:44px;height:44px;border-radius:12px;background:rgba(34,0,42,.92);color:#fff;border:1px solid rgba(255,255,255,.18)}
-    .floating-diag{position:fixed;bottom:16px;left:16px;z-index:30;width:min(400px, calc(100vw - 32px));max-height:38vh;background:rgba(34,0,42,.94);border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.32);overflow:hidden;backdrop-filter:blur(10px);display:flex;flex-direction:column}
+    .floating-diag{position:fixed;bottom:16px;left:16px;z-index:30;width:min(420px, calc(100vw - 32px));max-height:44vh;background:rgba(34,0,42,.94);border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.32);overflow:hidden;backdrop-filter:blur(10px);display:flex;flex-direction:column}
     .floating-diag-head{padding:8px 12px;font-weight:900;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.06);color:#fff;border-bottom:1px solid rgba(255,255,255,.14);display:flex;justify-content:space-between;align-items:center}
     .floating-diag-head button{background:transparent;border:0;color:#fff;font-size:14px;cursor:pointer;opacity:.65;padding:2px 6px;border-radius:6px}
-    .floating-diag-head button:hover{opacity:1;background:rgba(255,255,255,.10)}
     .floating-diag-log{padding:8px 12px;overflow-y:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.5;color:#e6e6e6;flex:1}
+    /* V8: progress bar */
+    .diag-progress{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04)}
+    .diag-progress-label{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#e6e0ea;margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;font-weight:800}
+    .diag-progress-label span:last-child{color:#fff;font-weight:900}
+    .diag-progress-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.10);overflow:hidden;position:relative}
+    .diag-progress-bar-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#f68b1f,#df1d73);border-radius:99px;transition:width .35s cubic-bezier(.4,.05,.2,1)}
+    .diag-progress-bar-fill.indeterminate{width:35% !important;animation:indetSlide 1.4s ease-in-out infinite;background:linear-gradient(90deg,transparent 0%,#f68b1f 20%,#df1d73 50%,#f68b1f 80%,transparent 100%);background-size:200% 100%}
+    @keyframes indetSlide{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}
     .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:50;background:rgba(34,0,42,.96);border:1px solid rgba(255,255,255,.16);color:#fff;padding:11px 18px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.4);font-size:13.5px;max-width:min(500px, 90vw);opacity:0;pointer-events:none;transition:opacity .3s, transform .3s;text-align:center}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
     .toast.ok{border-color:#57c496}
     .toast.error{border-color:#ff9c8a;background:rgba(60,0,20,.96)}
+    .cat-search{position:relative;margin:10px 0 4px}
+    .cat-search input{width:100%;height:38px;padding:0 34px 0 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;font-size:13px;outline:none}
+    .cat-search input::placeholder{color:rgba(255,255,255,.55)}
+    .cat-search .cat-search-clear{position:absolute;right:6px;top:6px;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:#fff;font-weight:900;font-size:16px;cursor:pointer;opacity:.7}
+    .sub-row.hidden,.category.hidden{display:none !important}
+    .zip-all-btn{width:100%;margin-top:8px;background:linear-gradient(135deg,var(--pink),var(--orange));color:#fff;border:0;border-radius:12px;padding:11px 14px;font-weight:900;font-size:13.5px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.15)}
+    .zip-all-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+    /* categorieen met kleuren */
+    .category-list{display:grid;gap:6px;margin-top:12px}
+    .category{border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:14px;overflow:hidden;border-left:4px solid var(--cat-color, var(--pink))}
+    .category-head{display:grid;grid-template-columns:24px 1fr auto auto;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid transparent}
+    .category.open .category-head{border-bottom-color:rgba(255,255,255,.10)}
+    .cat-title{border:0;background:transparent;text-align:left;padding:0;color:#fff;cursor:pointer}
+    .cat-title b{display:block;font-size:13.5px;line-height:1.2}
+    .cat-title span{display:block;color:var(--ink-soft);font-size:11.5px;margin-top:1px;line-height:1.25}
+    .cat-count{padding:3px 6px;font-size:11px;font-weight:800;background:var(--cat-color-soft, rgba(223,29,115,.16));border:1px solid var(--cat-color, rgba(223,29,115,.42));color:#fff;border-radius:99px;white-space:nowrap}
+    .cat-dl-btn{background:rgba(255,255,255,.10);border:1px solid var(--line);color:#fff;border-radius:8px;padding:4px 8px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap}
+    .cat-dl-btn:hover:not(:disabled){background:var(--cat-color, var(--pink));border-color:var(--cat-color, var(--pink))}
+    .cat-dl-btn:disabled{opacity:.42;cursor:not-allowed}
+    .cat-dl-btn.busy{background:var(--yellow);color:#210026;border-color:var(--yellow);pointer-events:none}
+    .cat-dl-btn.done{background:rgba(29,138,98,.28);border-color:#57c496;color:#a0ffb8}
+    .sub-list{display:none;padding:2px 4px 4px;gap:1px}
+    .category.open .sub-list{display:grid}
+    .sub-row{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:center;padding:4px 6px;border-radius:9px;border:1px solid transparent}
+    .sub-row:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10)}
+    .sub-row input{width:16px;height:16px;accent-color:var(--cat-color, var(--pink));cursor:pointer}
+    .sub-row .sub-info{min-width:0;cursor:pointer}
+    .sub-row .sub-info b{display:block;font-size:12.8px;margin-bottom:0;line-height:1.2;color:#fff}
+    .sub-row .sub-info span{display:block;color:var(--ink-soft);font-size:11.3px;line-height:1.3}
+    .sub-dl-btn{background:rgba(255,255,255,.10);border:1px solid var(--line);color:#fff;border-radius:8px;padding:4px 7px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap}
+    .sub-dl-btn:hover:not(:disabled){background:var(--cat-color, var(--pink));border-color:var(--cat-color, var(--pink))}
+    .sub-dl-btn:disabled{opacity:.42;cursor:not-allowed}
+    .sub-dl-btn.busy{background:var(--yellow);color:#210026;border-color:var(--yellow);pointer-events:none}
+    .sub-dl-btn.done{background:rgba(29,138,98,.28);border-color:#57c496;color:#a0ffb8}
+    .cat-icon{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--cat-color, var(--pink));vertical-align:middle;margin-right:6px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+    .osm-label{font-size:10.5px;font-weight:800;fill:#fff;paint-order:stroke fill;stroke:rgba(0,0,0,.85);stroke-width:3px;stroke-linejoin:round;pointer-events:none;user-select:none}
     @media (max-width:640px){
       .control-card{left:8px !important;right:8px !important;width:calc(100vw - 16px) !important}
       .side{left:8px !important;right:8px !important;width:calc(100vw - 16px) !important;top:auto !important;bottom:88px !important;max-height:50vh !important}
-      .side.collapsed{transform:translateY(calc(100% + 30px)) !important}
-      .floating-diag{left:8px;right:8px;width:calc(100vw - 16px);bottom:8px;max-height:30vh}
-      .map-controls{top:auto !important;bottom:170px !important;right:8px !important;flex-direction:row}
+      .floating-diag{left:8px;right:8px;width:calc(100vw - 16px);bottom:8px;max-height:36vh}
+      .map-controls{top:auto !important;bottom:180px !important;right:8px !important;flex-direction:row}
     }
+    .brand:after{content:""}
+
 </style>
 </head>
 <body>
   <main class="shell">
-    <!-- Topbar verwijderd voor cleane fullscreen layout -->
+    <!-- topbar verborgen via CSS -->
 
-    <!-- hero verwijderd voor fullscreen layout -->
+    <!-- hero verwijderd -->
 
     <section class="app-grid">
       <div class="card map-card">
@@ -433,7 +439,7 @@
           <div class="eyebrow">Legacy</div>
           <h2>Legacy</h2>
           <p class="muted" id="selectionSummary">0 subcategorieen geselecteerd.</p>
-          <button class="btn btn-dark" id="fetchBtn" type="button" style="width:100%;margin-top:14px">Alles</button>
+          <button class="btn btn-dark" id="fetchBtn" type="button" style="width:100%;margin-top:14px">Gegevens ophalen</button>
           <div id="message" class="notice"></div>
           <div id="resultBox" class="result-box">
             <div class="result-head"><b>Opgehaalde objecten</b><span id="resultTotal">0 resultaten</span></div>
@@ -443,10 +449,6 @@
               <button class="btn btn-soft" id="downloadZipBtn" type="button">ZIP per subcategorie</button>
             </div>
           </div>
-          <div id="diagBox" class="diag-box" style="display:none">
-            <div class="diag-head">Diagnose</div>
-            <div id="diagLog" class="diag-log"></div>
-          </div>
           <details class="query-details">
             <summary>Geavanceerd: query bekijken</summary>
             <pre id="queryOut"></pre>
@@ -455,12 +457,15 @@
         </div>
       </aside>
     </section>
-    <!-- float-footer samengevoegd in control-card -->
     <button id="sideToggle" class="side-toggle" type="button" title="Paneel tonen/verbergen">✕</button>
     <div id="floatingDiag" class="floating-diag" style="display:none">
       <div class="floating-diag-head">
         <span>Diagnose</span>
         <button type="button" id="floatingDiagClose" title="Verbergen">✕</button>
+      </div>
+      <div id="diagProgress" class="diag-progress" style="display:none">
+        <div class="diag-progress-label"><span id="diagProgressText">Bezig...</span><span id="diagProgressCount">0 / 0</span></div>
+        <div class="diag-progress-bar"><div id="diagProgressFill" class="diag-progress-bar-fill" style="width:0%"></div></div>
       </div>
       <div id="floatingDiagLog" class="floating-diag-log"></div>
     </div>
@@ -559,7 +564,7 @@
   function $(id){return document.getElementById(id)}
 
   function initEls(){
-    ['map','tilePane','drawPane','drawStatus','undoBtn','clearBtn','finishBtn','zoomInBtn','zoomOutBtn','searchInput','searchBtn','searchResults','locateBtn','categoryList','selectionSummary','fetchBtn','message','resultBox','resultTotal','resultLines','downloadCombinedBtn','downloadZipBtn','queryOut','turboLink','diagBox','diagLog'].forEach(id => els[id] = $(id));
+    ['map','tilePane','drawPane','drawStatus','undoBtn','clearBtn','finishBtn','zoomInBtn','zoomOutBtn','searchInput','searchBtn','searchResults','locateBtn','categoryList','selectionSummary','fetchBtn','message','resultBox','resultTotal','resultLines','downloadCombinedBtn','downloadZipBtn','queryOut','turboLink'].forEach(id => els[id] = $(id));
   }
 
   function normalizeLon(lon){
@@ -624,7 +629,6 @@
   const _tileCache = new Map();
   function renderTiles(){
     const size = mapSize();
-    const c = centerWorld();
     const z = Math.round(state.zoom);
     const scale = Math.pow(2, state.zoom - z);
     const cZ = latLonToWorld(state.center.lat, state.center.lon, z);
@@ -767,7 +771,6 @@
     if(state.points.length < 3){showMessage('Teken eerst minimaal 3 hoekpunten.', 'error'); return false;}
     state.finalized = true;
     renderMap();
-    if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
     return true;
   }
   function clearPolygon(){
@@ -778,16 +781,12 @@
     els.resultBox.style.display = 'none';
     showMessage('', '');
     renderMap();
-    if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
-    document.querySelectorAll('.sub-dl-btn').forEach(b => { b.classList.remove('done','busy'); b.textContent = '⬇'; });
-    document.querySelectorAll('.cat-dl-btn').forEach(b => { b.classList.remove('done','busy'); b.textContent = '⬇ ZIP'; });
   }
   function undoPoint(){
     if(!state.points.length) return;
     state.finalized = false;
     state.points.pop();
     renderMap();
-    if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
   }
 
   function initMapEvents(){
@@ -914,19 +913,17 @@
     // Geen automatische pre-selectie — gebruiker vinkt zelf aan
     els.categoryList.innerHTML = CATEGORIES.map(cat => {
       const selectedCount = cat.subs.filter(s => state.selected.has(s.id)).length;
-      return '<section class="category ' + (cat.open ? 'open' : '') + '" data-cat="' + cat.id + '" data-search="' + escapeHtml((cat.title + ' ' + cat.desc).toLowerCase()) + '">' +
+      return '<section class="category ' + (cat.open ? 'open' : '') + '" data-cat="' + cat.id + '">' +
         '<div class="category-head">' +
-          '<input class="cat-check" type="checkbox" aria-label="Selecteer alles binnen ' + escapeHtml(cat.title) + '" data-cat-check="' + cat.id + '" ' + (selectedCount === cat.subs.length && cat.subs.length > 0 ? 'checked' : '') + '>' +
+          '<input class="cat-check" type="checkbox" aria-label="Selecteer alles binnen ' + escapeHtml(cat.title) + '" data-cat-check="' + cat.id + '" ' + (selectedCount === cat.subs.length ? 'checked' : '') + '>' +
           '<button class="cat-title" type="button" data-cat-title="' + cat.id + '"><b>' + escapeHtml(cat.title) + '</b><span>' + escapeHtml(cat.desc) + '</span></button>' +
           '<span class="cat-count" id="count-' + cat.id + '">' + selectedCount + '/' + cat.subs.length + '</span>' +
-          '<button class="cat-dl-btn" type="button" data-cat-dl="' + cat.id + '" title="Download hele categorie als ZIP" disabled>⬇ ZIP</button>' +
         '</div>' +
         '<div class="sub-list">' + cat.subs.map(sub =>
-          '<div class="sub-row" data-sub-row="' + sub.id + '" data-search="' + escapeHtml((sub.label + ' ' + sub.desc + ' ' + cat.title).toLowerCase()) + '">' +
-            '<input type="checkbox" data-sub="' + sub.id + '" ' + (state.selected.has(sub.id) ? 'checked' : '') + ' title="Meenemen in ZIP-download">' +
-            '<div class="sub-info" data-sub-info="' + sub.id + '"><b>' + escapeHtml(sub.label) + '</b><span>' + escapeHtml(sub.desc) + '</span></div>' +
-            '<button class="sub-dl-btn" type="button" data-sub-dl="' + sub.id + '" title="Download alleen deze subcategorie als GeoJSON" disabled>⬇</button>' +
-          '</div>'
+          '<label class="sub-row">' +
+            '<input type="checkbox" data-sub="' + sub.id + '" ' + (state.selected.has(sub.id) ? 'checked' : '') + '>' +
+            '<span><b>' + escapeHtml(sub.label) + '</b><span>' + escapeHtml(sub.desc) + '</span></span>' +
+          '</label>'
         ).join('') + '</div>' +
       '</section>';
     }).join('');
@@ -950,268 +947,13 @@
         syncCategoryInputs();
       });
     });
-    els.categoryList.querySelectorAll('[data-sub-info]').forEach(info => {
-      info.addEventListener('click', () => {
-        const row = info.closest('.sub-row');
-        const chk = row && row.querySelector('input[type=checkbox]');
-        if(!chk) return;
-        chk.checked = !chk.checked;
-        chk.dispatchEvent(new Event('change'));
-      });
-    });
-    els.categoryList.querySelectorAll('[data-sub-dl]').forEach(btn => {
-      btn.addEventListener('click', e => { e.stopPropagation(); downloadSingleSubcategory(btn.dataset.subDl, btn); });
-    });
-    els.categoryList.querySelectorAll('[data-cat-dl]').forEach(btn => {
-      btn.addEventListener('click', e => { e.stopPropagation(); downloadCategory(btn.dataset.catDl, btn); });
-    });
     syncCategoryInputs();
-    updateSubDownloadButtons();
-  }
-  function updateSubDownloadButtons(){
-    const ready = state.points.length >= 3;
-    document.querySelectorAll('.sub-dl-btn, .cat-dl-btn').forEach(btn => {
-      if(btn.classList.contains('busy')) return;
-      btn.disabled = !ready;
-      btn.title = ready ? btn.title : 'Teken eerst een polygoon van minimaal 3 punten';
-    });
-    const zipBtn = document.getElementById('zipAllBtn');
-    if(zipBtn){
-      const hasSel = state.selected && state.selected.size > 0;
-      const count = state.selected ? state.selected.size : 0;
-      zipBtn.disabled = !(ready && hasSel);
-      zipBtn.title = !ready ? 'Teken eerst een polygoon' : (!hasSel ? 'Selecteer minimaal 1 subcategorie' : 'Download alle geselecteerde subcategorieen als ZIP');
-      if(!zipBtn.classList.contains('busy')){
-        zipBtn.textContent = count > 0 ? ('⬇ Download ' + count + ' laag' + (count === 1 ? '' : 'en') + ' als ZIP') : '⬇ Download alle geselecteerde als ZIP';
-      }
-    }
-  }
-  async function downloadSingleSubcategory(subId, btn){
-    if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
-    if(!state.finalized) finishPolygon();
-    const sub = findSubcategory(subId);
-    if(!sub){ showMessage('Onbekende subcategorie: ' + subId, 'error'); return; }
-    const query = buildQueryForSubcategory(sub);
-    if(!query){ showMessage('Kan geen query bouwen voor ' + sub.label, 'error'); return; }
-    resetDiagnostics();
-    addDiagnostic('info', 'Download ' + sub.label + ' gestart...');
-    const originalLabel = btn ? btn.textContent : '';
-    if(btn){ btn.classList.add('busy'); btn.classList.remove('done'); btn.textContent = '...'; }
-    try{
-      const result = await fetchOverpassJson(query);
-      const elements = (result.json && result.json.elements) ? result.json.elements : [];
-      addDiagnostic('ok', sub.label + ': ' + elements.length + ' OSM-objecten via ' + result.method);
-      const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
-      if(features.length === 0){
-        addDiagnostic('warn', sub.label + ': geen objecten binnen het polygoon.');
-        showMessage('Geen objecten gevonden voor ' + sub.label + ' in dit gebied.', 'error');
-        if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '⬇'; }
-        return;
-      }
-      mergeFeaturesIntoState(features);
-      renderMap();
-      const geojson = {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + result.method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
-      const filename = slugify(sub.category) + '__' + slugify(sub.label) + '.geojson';
-      downloadBlob(filename, JSON.stringify(geojson, null, 2), 'application/geo+json');
-      if(btn){ btn.classList.remove('busy'); btn.classList.add('done'); btn.textContent = '✓ ' + features.length; setTimeout(() => { btn.classList.remove('done'); btn.textContent = originalLabel || '⬇'; }, 4000); }
-      showMessage('Gedownload: ' + filename + ' (' + features.length + ' objecten).', 'ok');
-    }catch(err){
-      const msg = err && err.message ? err.message : String(err);
-      addDiagnostic('error', sub.label + ' mislukt: ' + msg);
-      const directUrl = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
-      showFallbackDownload(sub, directUrl, query);
-      showMessage('Download ' + sub.label + ' mislukt. Zie Diagnose en gebruik de nood-download knop.', 'error');
-      if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '⬇'; }
-    }
-  }
-  async function downloadCategory(catId, btn){
-    if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
-    if(!state.finalized) finishPolygon();
-    const cat = CATEGORIES.find(c => c.id === catId);
-    if(!cat){ showMessage('Onbekende categorie: ' + catId, 'error'); return; }
-    resetDiagnostics();
-    addDiagnostic('info', 'Download categorie "' + cat.title + '" (' + cat.subs.length + ' subcategorieen) gestart...');
-    const originalLabel = btn ? btn.textContent : '';
-    if(btn){ btn.classList.add('busy'); btn.classList.remove('done'); btn.textContent = 'Bezig...'; }
-    const files = [];
-    let totalFeatures = 0;
-    const failed = [];
-    for(const subRef of cat.subs){
-      const sub = {...subRef, category: cat.title};
-      const query = buildQueryForSubcategory(sub);
-      if(!query){ failed.push(sub.label + ': geen query'); continue; }
-      try{
-        const result = await fetchOverpassJson(query);
-        const elements = (result.json && result.json.elements) ? result.json.elements : [];
-        addDiagnostic('ok', sub.label + ': ' + elements.length + ' objecten via ' + result.method);
-        const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
-        if(features.length){
-          mergeFeaturesIntoState(features);
-          const geojson = {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + result.method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
-          files.push({name: slugify(sub.label) + '.geojson', content: JSON.stringify(geojson, null, 2)});
-          totalFeatures += features.length;
-        }
-      }catch(err){
-        const msg = err && err.message ? err.message : String(err);
-        addDiagnostic('error', sub.label + ' mislukt: ' + msg);
-        failed.push(sub.label);
-      }
-    }
-    renderMap();
-    if(files.length === 0){
-      if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '⬇ ZIP'; }
-      showMessage('Geen data opgehaald voor categorie ' + cat.title + '. Zie Diagnose.', 'error');
-      return;
-    }
-    const zipBlob = makeZip(files);
-    const filename = slugify(cat.title) + '.zip';
-    downloadBlob(filename, zipBlob, 'application/zip');
-    if(btn){ btn.classList.remove('busy'); btn.classList.add('done'); btn.textContent = '✓ ' + totalFeatures; setTimeout(() => { btn.classList.remove('done'); btn.textContent = originalLabel || '⬇ ZIP'; }, 4000); }
-    const tail = failed.length ? ' (' + failed.length + ' mislukt, zie Diagnose)' : '';
-    showMessage('Gedownload: ' + filename + ' met ' + files.length + ' lagen (' + totalFeatures + ' objecten)' + tail + '.', 'ok');
-  }
-  async function downloadAllSelectedZip(){
-    if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
-    if(!state.finalized) finishPolygon();
-    const selected = selectedSubcategories();
-    if(selected.length === 0){ showMessage('Selecteer minimaal 1 subcategorie.', 'error'); return; }
-    const btn = document.getElementById('zipAllBtn');
-    const originalLabel = btn ? btn.textContent : '';
-    if(btn){ btn.disabled = true; btn.textContent = 'Bezig met ophalen...'; }
-    resetDiagnostics();
-    addDiagnostic('info', 'ZIP-download van ' + selected.length + ' geselecteerde subcategorieen gestart...');
-    const files = [];
-    let total = 0;
-    const failed = [];
-    for(const sub of selected){
-      const query = buildQueryForSubcategory(sub);
-      if(!query){ failed.push(sub.label); continue; }
-      try{
-        const result = await fetchOverpassJson(query);
-        const elements = (result.json && result.json.elements) ? result.json.elements : [];
-        addDiagnostic('ok', sub.label + ': ' + elements.length + ' via ' + result.method);
-        const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
-        if(features.length){
-          mergeFeaturesIntoState(features);
-          const geo = {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + result.method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
-          files.push({name: slugify(sub.category) + '__' + slugify(sub.label) + '.geojson', content: JSON.stringify(geo, null, 2)});
-          total += features.length;
-        }
-      }catch(err){
-        failed.push(sub.label + ': ' + (err && err.message ? err.message : err));
-        addDiagnostic('error', sub.label + ' mislukt: ' + (err && err.message ? err.message : err));
-      }
-    }
-    renderMap();
-    if(btn){ btn.disabled = false; btn.textContent = originalLabel || '⬇ Download alle geselecteerde als ZIP'; }
-    if(!files.length){ showMessage('Geen enkele laag kon worden opgehaald. Zie Diagnose.', 'error'); return; }
-    const zipBlob = makeZip(files);
-    downloadBlob('osm-omgevingsdata-' + Date.now() + '.zip', zipBlob, 'application/zip');
-    showMessage('Gedownload: ZIP met ' + files.length + ' lagen (' + total + ' objecten)' + (failed.length ? ' — ' + failed.length + ' mislukt (zie Diagnose)' : '') + '.', 'ok');
-  }
-  function showFallbackDownload(sub, directUrl, query){
-    if(!els.diagBox) return;
-    els.diagBox.style.display = 'block';
-    let box = document.getElementById('fallbackBox');
-    if(!box){
-      box = document.createElement('div');
-      box.id = 'fallbackBox';
-      box.className = 'diag-row diag-warn';
-      box.style.marginTop = '10px';
-      els.diagLog.appendChild(box);
-    }
-    const safeName = slugify(sub.category) + '__' + slugify(sub.label);
-    const turboUrl = 'https://overpass-turbo.eu/?Q=' + encodeURIComponent(query) + '&R';
-    box.innerHTML = '<b>Nood-download voor ' + sub.label + ':</b><br>'
-      + '<a href="' + directUrl + '" target="_blank" rel="noopener" style="display:inline-block;margin:6px 6px 0 0;padding:7px 11px;background:#f68b1f;color:#210026;border-radius:10px;font-weight:900;text-decoration:none">➜ Open Overpass in nieuw tabblad</a>'
-      + '<a href="' + turboUrl + '" target="_blank" rel="noopener" style="display:inline-block;margin:6px 6px 0 0;padding:7px 11px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:10px;font-weight:900;text-decoration:none">➜ Open in Overpass Turbo</a>'
-      + '<br><small style="color:#dac3dc">Sla het resultaat op via je browser (Ctrl+S / Rechtermuisknop → Opslaan als) en hernoem naar <code>' + safeName + '.geojson</code>.</small>';
-  }
-  function findSubcategory(id){
-    for(const cat of CATEGORIES){
-      for(const sub of cat.subs){
-        if(sub.id === id) return {...sub, category: cat.title};
-      }
-    }
-    return null;
-  }
-  function elementToFeatureForSub(el, sub){
-    const tags = el.tags || {};
-    let geometry = null;
-    if(el.type === 'node' && Number.isFinite(el.lat) && Number.isFinite(el.lon)){
-      geometry = {type:'Point', coordinates:[el.lon, el.lat]};
-    }else if(Array.isArray(el.geometry) && el.geometry.length){
-      const coords = el.geometry.filter(p => p && Number.isFinite(p.lat) && Number.isFinite(p.lon)).map(p => [p.lon, p.lat]);
-      if(coords.length >= 2){
-        const first = coords[0], last = coords[coords.length - 1];
-        const closed = coords.length >= 4 && Math.abs(first[0] - last[0]) < 1e-10 && Math.abs(first[1] - last[1]) < 1e-10;
-        geometry = closed ? {type:'Polygon', coordinates:[coords]} : {type:'LineString', coordinates:coords};
-      }
-    }else if(el.center && Number.isFinite(el.center.lat) && Number.isFinite(el.center.lon)){
-      geometry = {type:'Point', coordinates:[el.center.lon, el.center.lat]};
-    }
-    if(!geometry) return null;
-    return {type:'Feature', properties:{categorie:sub.category, subcategorie:sub.label, osm_type:el.type, osm_id:el.id, ...tags}, geometry};
-  }
-  function mergeFeaturesIntoState(features){
-    const key = f => (f.properties.osm_type || 'x') + '/' + (f.properties.osm_id || Math.random());
-    const seen = new Set(state.features.map(key));
-    features.forEach(f => { if(!seen.has(key(f))){ state.features.push(f); seen.add(key(f)); } });
-    const grouped = {};
-    state.features.forEach(f => {
-      const g = f.properties.subcategorie || 'Overig';
-      if(!grouped[g]) grouped[g] = [];
-      grouped[g].push(f);
-    });
-    state.grouped = grouped;
-  }
-  function resetDiagnostics(){
-    if(els.diagLog){ els.diagLog.innerHTML = ''; if(els.diagBox) els.diagBox.style.display = 'none'; }
-    resetDiagnosticsFloat();
-  }
-  function addDiagnostic(kind, text){
-    const time = new Date().toLocaleTimeString('nl-NL', {hour12:false});
-    const mkRow = () => { const r = document.createElement('div'); r.className = 'diag-row diag-' + kind; r.textContent = '[' + time + '] ' + text; return r; };
-    if(els.diagLog){
-      if(els.diagBox) els.diagBox.style.display = 'block';
-      els.diagLog.appendChild(mkRow());
-      els.diagLog.scrollTop = els.diagLog.scrollHeight;
-    }
-    const fd = document.getElementById('floatingDiag');
-    const fdLog = document.getElementById('floatingDiagLog');
-    if(fd && fdLog){
-      fd.style.display = 'flex';
-      fdLog.appendChild(mkRow());
-      fdLog.scrollTop = fdLog.scrollHeight;
-    }
-  }
-  function resetDiagnosticsFloat(){
-    const fdLog = document.getElementById('floatingDiagLog');
-    if(fdLog) fdLog.innerHTML = '';
-    const fd = document.getElementById('floatingDiag');
-    if(fd) fd.style.display = 'none';
-  }
-  function initFloatingDiag(){
-    const close = document.getElementById('floatingDiagClose');
-    if(close) close.addEventListener('click', () => {
-      const fd = document.getElementById('floatingDiag');
-      if(fd) fd.style.display = 'none';
-    });
-  }
-  let _toastTimer = null;
-  function showToast(text, kind){
-    const t = document.getElementById('toast');
-    if(!t) return;
-    t.textContent = text;
-    t.className = 'toast show' + (kind ? ' ' + kind : '');
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => { t.className = 'toast' + (kind ? ' ' + kind : ''); }, 4500);
   }
 
   function syncCategoryInputs(){
     CATEGORIES.forEach(cat => {
       const selectedCount = cat.subs.filter(s => state.selected.has(s.id)).length;
-      const all = selectedCount === cat.subs.length && cat.subs.length > 0;
+      const all = selectedCount === cat.subs.length;
       const some = selectedCount > 0 && selectedCount < cat.subs.length;
       const chk = els.categoryList.querySelector('[data-cat-check="' + cat.id + '"]');
       if(chk){ chk.checked = all; chk.indeterminate = some; }
@@ -1223,9 +965,8 @@
       });
     });
     const selected = selectedSubcategories();
-    if(els.selectionSummary) els.selectionSummary.textContent = selected.length + ' subcategorie' + (selected.length === 1 ? '' : 'en') + ' geselecteerd.';
+    els.selectionSummary.textContent = selected.length + ' subcategorie' + (selected.length === 1 ? '' : 'en') + ' geselecteerd.';
     buildQueryPreview();
-    if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
   }
 
   function selectedSubcategories(){
@@ -1317,18 +1058,60 @@
     return readJsonResponse(res, proxy.name + ' -> ' + host);
   }
 
-  // JSONP wordt niet ondersteund door Overpass API; die attempt-tak is verwijderd.
+  function fetchOverpassJsonp(endpoint, query){
+    return new Promise((resolve, reject) => {
+      const host = endpointHost(endpoint);
+      const cb = '__dpi_overpass_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      const script = document.createElement('script');
+      let done = false;
+      const timer = setTimeout(() => {
+        if(done) return;
+        done = true;
+        cleanup();
+        reject(new Error(host + ' JSONP timeout'));
+      }, JSONP_TIMEOUT_MS);
+      function cleanup(){
+        clearTimeout(timer);
+        try{ delete window[cb]; }catch(_){ window[cb] = undefined; }
+        if(script.parentNode) script.parentNode.removeChild(script);
+      }
+      window[cb] = data => {
+        if(done) return;
+        done = true;
+        cleanup();
+        resolve(data);
+      };
+      script.onerror = () => {
+        if(done) return;
+        done = true;
+        cleanup();
+        reject(new Error(host + ' JSONP is mislukt'));
+      };
+      script.onload = () => {
+        setTimeout(() => {
+          if(done) return;
+          done = true;
+          cleanup();
+          reject(new Error(host + ' ondersteunt geen JSONP-callback'));
+        }, 350);
+      };
+      script.referrerPolicy = 'no-referrer';
+      script.src = overpassGetUrl(endpoint, query) + '&callback=' + encodeURIComponent(cb);
+      document.head.appendChild(script);
+    });
+  }
 
   async function fetchOverpassJson(query){
     let lastError = '';
     const attempts = [];
     const directEndpoints = OVERPASS_ENDPOINTS.slice(0,5);
-    const proxyEndpoints = OVERPASS_ENDPOINTS.slice(0,3);
+    const proxyEndpoints = OVERPASS_ENDPOINTS.slice(0,4);
     const preferProxy = location.protocol === 'file:' || location.origin === 'null';
+
     function addDirectAttempts(){
       for(const endpoint of directEndpoints){
-        attempts.push({kind:'direct-post', endpoint});
         attempts.push({kind:'direct-get', endpoint});
+        attempts.push({kind:'direct-post', endpoint});
       }
     }
     function addProxyAttempts(){
@@ -1338,15 +1121,20 @@
         }
       }
     }
+
     if(preferProxy){
       addProxyAttempts();
+      addDirectAttempts();
     }else{
       addDirectAttempts();
       addProxyAttempts();
     }
+    for(const endpoint of directEndpoints.slice(0,3)){
+      attempts.push({kind:'jsonp', endpoint});
+    }
+
     for(const attempt of attempts){
       const host = endpointHost(attempt.endpoint);
-      const label = (attempt.kind === 'proxy' && attempt.proxy ? attempt.proxy.name + ' -> ' : '') + host + ' (' + attempt.kind + ')';
       try{
         let json;
         let method;
@@ -1356,16 +1144,16 @@
         }else if(attempt.kind === 'direct-post'){
           json = await fetchOverpassPost(attempt.endpoint, query);
           method = host + ' direct POST';
-        }else{
+        }else if(attempt.kind === 'proxy'){
           json = await fetchOverpassViaProxy(attempt.endpoint, query, attempt.proxy);
           method = attempt.proxy.name + ' -> ' + host;
+        }else{
+          json = await fetchOverpassJsonp(attempt.endpoint, query);
+          method = host + ' JSONP';
         }
-        try{ addDiagnostic('ok', label + ' -> OK'); }catch(_){}
         return {json, host, method};
       }catch(err){
-        const errMsg = compactError(err);
-        lastError = (attempt.kind === 'proxy' && attempt.proxy ? attempt.proxy.name + ' -> ' : '') + host + ': ' + errMsg;
-        try{ addDiagnostic('warn', label + ' -> ' + errMsg); }catch(_){}
+        lastError = (attempt.kind === 'proxy' && attempt.proxy ? attempt.proxy.name + ' -> ' : '') + host + ': ' + compactError(err);
       }
     }
     throw new Error(lastError || 'geen Overpass-server bereikbaar');
@@ -1659,13 +1447,398 @@
     return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   }
   function showMessage(text, type){
-    if(els.message){
-      if(!text){ els.message.style.display = 'none'; els.message.textContent = ''; els.message.className = 'notice'; }
-      else{ els.message.textContent = text; els.message.className = 'notice' + (type ? ' ' + type : ''); els.message.style.display = 'block'; }
-    }
-    if(text) showToast(text, type);
+    if(!text){ els.message.style.display = 'none'; els.message.textContent = ''; els.message.className = 'notice'; return; }
+    els.message.textContent = text;
+    els.message.className = 'notice' + (type ? ' ' + type : '');
+    els.message.style.display = 'block';
   }
 
+  function init(){
+    initEls();
+    renderCategories();
+    initMapEvents();
+    initSearch();
+    els.fetchBtn.addEventListener('click', fetchOverpass);
+    els.downloadCombinedBtn.addEventListener('click', downloadCombined);
+    els.downloadZipBtn.addEventListener('click', downloadZip);
+    renderMap();
+  }
+  init();
+  
+  /* ============================================================
+     V7+V8 uitbreidingen: kleuren per categorie, labels op kaart,
+     voortgangsbalk, download-knoppen per (sub)categorie,
+     floating diagnose, toast, zoek in categorien, side toggle,
+     control-card, keyboard shortcuts.
+     ============================================================ */
+  const CATEGORY_COLORS = {
+    'stakeholders':   {main:'#df1d73', soft:'rgba(223,29,115,.22)'},
+    'traffic':        {main:'#2b9fd6', soft:'rgba(43,159,214,.22)'},
+    'business':       {main:'#f68b1f', soft:'rgba(246,139,31,.22)'},
+    'safety':         {main:'#e74c3c', soft:'rgba(231,76,60,.22)'},
+    'public_space':   {main:'#2ecc71', soft:'rgba(46,204,113,.22)'}
+  };
+  function categoryColorById(catId){ return CATEGORY_COLORS[catId] || {main:'#df1d73', soft:'rgba(223,29,115,.22)'}; }
+  function categoryColorByTitle(title){
+    const cat = CATEGORIES.find(c => c.title === title);
+    return cat ? categoryColorById(cat.id) : {main:'#df1d73', soft:'rgba(223,29,115,.22)'};
+  }
+  // Betere compactError
+  window.compactError = function(err){
+    if(!err) return 'onbekende fout';
+    if(err.name === 'AbortError' || (err.message && (err.message.includes('aborted') || err.message.includes('AbortError')))) return 'timeout (server te traag)';
+    const msg = err.message ? err.message : String(err);
+    if(msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('load failed')) return 'CORS-blokkade of netwerkfout';
+    return msg.replace(/\s+/g, ' ').slice(0, 210);
+  };
+  // Category HTML render met kleuren
+  function renderCategoriesV8(){
+    if(!els.categoryList) return;
+    els.categoryList.innerHTML = CATEGORIES.map(cat => {
+      const selectedCount = cat.subs.filter(s => state.selected.has(s.id)).length;
+      const color = categoryColorById(cat.id);
+      const styleAttr = 'style="--cat-color:' + color.main + ';--cat-color-soft:' + color.soft + '"';
+      return '<section class="category ' + (cat.open ? 'open' : '') + '" data-cat="' + cat.id + '" data-search="' + escapeHtml((cat.title + ' ' + cat.desc).toLowerCase()) + '" ' + styleAttr + '>' +
+        '<div class="category-head">' +
+          '<input class="cat-check" type="checkbox" data-cat-check="' + cat.id + '" ' + (selectedCount === cat.subs.length && cat.subs.length > 0 ? 'checked' : '') + '>' +
+          '<button class="cat-title" type="button" data-cat-title="' + cat.id + '"><b><span class="cat-icon"></span> ' + escapeHtml(cat.title) + '</b><span>' + escapeHtml(cat.desc) + '</span></button>' +
+          '<span class="cat-count" id="count-' + cat.id + '">' + selectedCount + '/' + cat.subs.length + '</span>' +
+          '<button class="cat-dl-btn" type="button" data-cat-dl="' + cat.id + '" title="Download hele categorie als ZIP" disabled>&#x2B07; ZIP</button>' +
+        '</div>' +
+        '<div class="sub-list">' + cat.subs.map(sub =>
+          '<div class="sub-row" data-sub-row="' + sub.id + '" data-search="' + escapeHtml((sub.label + ' ' + sub.desc + ' ' + cat.title).toLowerCase()) + '">' +
+            '<input type="checkbox" data-sub="' + sub.id + '" ' + (state.selected.has(sub.id) ? 'checked' : '') + '>' +
+            '<div class="sub-info" data-sub-info="' + sub.id + '"><b>' + escapeHtml(sub.label) + '</b><span>' + escapeHtml(sub.desc) + '</span></div>' +
+            '<button class="sub-dl-btn" type="button" data-sub-dl="' + sub.id + '" title="Download deze subcategorie als GeoJSON" disabled>&#x2B07;</button>' +
+          '</div>'
+        ).join('') + '</div>' +
+      '</section>';
+    }).join('');
+    els.categoryList.querySelectorAll('[data-cat-title]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const box = els.categoryList.querySelector('[data-cat="' + btn.dataset.catTitle + '"]');
+        box.classList.toggle('open');
+      });
+    });
+    els.categoryList.querySelectorAll('[data-cat-check]').forEach(chk => {
+      chk.addEventListener('change', () => {
+        const cat = CATEGORIES.find(c => c.id === chk.dataset.catCheck);
+        cat.subs.forEach(sub => chk.checked ? state.selected.add(sub.id) : state.selected.delete(sub.id));
+        syncCategoryInputs();
+      });
+    });
+    els.categoryList.querySelectorAll('[data-sub]').forEach(chk => {
+      chk.addEventListener('change', () => {
+        chk.checked ? state.selected.add(chk.dataset.sub) : state.selected.delete(chk.dataset.sub);
+        syncCategoryInputs();
+      });
+    });
+    els.categoryList.querySelectorAll('[data-sub-info]').forEach(info => {
+      info.addEventListener('click', () => {
+        const row = info.closest('.sub-row');
+        const chk = row && row.querySelector('input[type=checkbox]');
+        if(!chk) return;
+        chk.checked = !chk.checked;
+        chk.dispatchEvent(new Event('change'));
+      });
+    });
+    els.categoryList.querySelectorAll('[data-sub-dl]').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); downloadSingleSubcategory(btn.dataset.subDl, btn); });
+    });
+    els.categoryList.querySelectorAll('[data-cat-dl]').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); downloadCategory(btn.dataset.catDl, btn); });
+    });
+    syncCategoryInputs();
+    updateSubDownloadButtons();
+  }
+  function updateSubDownloadButtons(){
+    const ready = state.points.length >= 3;
+    document.querySelectorAll('.sub-dl-btn, .cat-dl-btn').forEach(btn => {
+      if(btn.classList.contains('busy')) return;
+      btn.disabled = !ready;
+    });
+    const zipBtn = document.getElementById('zipAllBtn');
+    if(zipBtn){
+      const count = state.selected ? state.selected.size : 0;
+      const hasSel = count > 0;
+      zipBtn.disabled = !(ready && hasSel);
+      zipBtn.title = !ready ? 'Teken eerst een polygoon' : (!hasSel ? 'Selecteer minimaal 1 subcategorie' : 'Download alle geselecteerde als ZIP');
+      if(!zipBtn.classList.contains('busy')){
+        zipBtn.textContent = count > 0 ? ('\u2B07 Download ' + count + ' laag' + (count === 1 ? '' : 'en') + ' als ZIP') : '\u2B07 Download alle geselecteerde als ZIP';
+      }
+    }
+  }
+  // Toast + progress
+  let _toastTimer = null;
+  function showToast(text, kind){
+    const t = document.getElementById('toast');
+    if(!t) return;
+    t.textContent = text;
+    t.className = 'toast show' + (kind ? ' ' + kind : '');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { t.className = 'toast' + (kind ? ' ' + kind : ''); }, 4500);
+  }
+  const _origShowMessage = typeof showMessage === 'function' ? showMessage : null;
+  window.showMessage = function(text, type){
+    if(_origShowMessage) try{ _origShowMessage(text, type); }catch(_){}
+    if(text) showToast(text, type);
+  };
+  function resetDiagnosticsFloat(){
+    const fdLog = document.getElementById('floatingDiagLog');
+    if(fdLog) fdLog.innerHTML = '';
+    const fd = document.getElementById('floatingDiag');
+    if(fd) fd.style.display = 'none';
+    hideProgress();
+  }
+  function resetDiagnostics(){ resetDiagnosticsFloat(); }
+  function addDiagnostic(kind, text){
+    const time = new Date().toLocaleTimeString('nl-NL', {hour12:false});
+    const row = document.createElement('div');
+    row.className = 'diag-row diag-' + kind;
+    row.textContent = '[' + time + '] ' + text;
+    const fd = document.getElementById('floatingDiag');
+    const fdLog = document.getElementById('floatingDiagLog');
+    if(fd && fdLog){
+      fd.style.display = 'flex';
+      fdLog.appendChild(row);
+      fdLog.scrollTop = fdLog.scrollHeight;
+    }
+  }
+  function showProgress(labelText, total){
+    const p = document.getElementById('diagProgress');
+    const fd = document.getElementById('floatingDiag');
+    if(!p) return;
+    p.style.display = 'block';
+    if(fd) fd.style.display = 'flex';
+    const t = document.getElementById('diagProgressText');
+    const c = document.getElementById('diagProgressCount');
+    const fill = document.getElementById('diagProgressFill');
+    if(t) t.textContent = labelText || 'Bezig...';
+    if(c) c.textContent = '0 / ' + (total || 0);
+    if(fill){
+      fill.style.width = '0%';
+      if(!total) fill.classList.add('indeterminate');
+      else fill.classList.remove('indeterminate');
+    }
+  }
+  function updateProgress(done, total, currentText){
+    const t = document.getElementById('diagProgressText');
+    const c = document.getElementById('diagProgressCount');
+    const fill = document.getElementById('diagProgressFill');
+    if(t && currentText) t.textContent = currentText;
+    if(c) c.textContent = done + ' / ' + total;
+    if(fill){
+      fill.classList.remove('indeterminate');
+      fill.style.width = Math.min(100, Math.round(done / Math.max(1, total) * 100)) + '%';
+    }
+  }
+  function hideProgress(){
+    const p = document.getElementById('diagProgress');
+    if(p) p.style.display = 'none';
+  }
+  function initFloatingDiag(){
+    const close = document.getElementById('floatingDiagClose');
+    if(close) close.addEventListener('click', () => {
+      const fd = document.getElementById('floatingDiag');
+      if(fd) fd.style.display = 'none';
+    });
+  }
+  function findSubcategory(id){
+    for(const cat of CATEGORIES){
+      for(const sub of cat.subs){
+        if(sub.id === id) return {...sub, category: cat.title};
+      }
+    }
+    return null;
+  }
+  function elementToFeatureForSub(el, sub){
+    const tags = el.tags || {};
+    let geometry = null;
+    if(el.type === 'node' && Number.isFinite(el.lat) && Number.isFinite(el.lon)){
+      geometry = {type:'Point', coordinates:[el.lon, el.lat]};
+    }else if(Array.isArray(el.geometry) && el.geometry.length){
+      const coords = el.geometry.filter(p => p && Number.isFinite(p.lat) && Number.isFinite(p.lon)).map(p => [p.lon, p.lat]);
+      if(coords.length >= 2){
+        const first = coords[0], last = coords[coords.length - 1];
+        const closed = coords.length >= 4 && Math.abs(first[0] - last[0]) < 1e-10 && Math.abs(first[1] - last[1]) < 1e-10;
+        geometry = closed ? {type:'Polygon', coordinates:[coords]} : {type:'LineString', coordinates:coords};
+      }
+    }else if(el.center && Number.isFinite(el.center.lat) && Number.isFinite(el.center.lon)){
+      geometry = {type:'Point', coordinates:[el.center.lon, el.center.lat]};
+    }
+    if(!geometry) return null;
+    return {type:'Feature', properties:{categorie:sub.category, subcategorie:sub.label, osm_type:el.type, osm_id:el.id, ...tags}, geometry};
+  }
+  function mergeFeaturesIntoState(features){
+    const key = f => (f.properties.osm_type || 'x') + '/' + (f.properties.osm_id || Math.random());
+    const seen = new Set(state.features.map(key));
+    features.forEach(f => { if(!seen.has(key(f))){ state.features.push(f); seen.add(key(f)); } });
+    const grouped = {};
+    state.features.forEach(f => {
+      const g = f.properties.subcategorie || 'Overig';
+      if(!grouped[g]) grouped[g] = [];
+      grouped[g].push(f);
+    });
+    state.grouped = grouped;
+  }
+  function showFallbackDownload(sub, directUrl, query){
+    const fdLog = document.getElementById('floatingDiagLog');
+    const fd = document.getElementById('floatingDiag');
+    if(!fdLog || !fd) return;
+    fd.style.display = 'flex';
+    let box = document.getElementById('fallbackBox');
+    if(!box){
+      box = document.createElement('div');
+      box.id = 'fallbackBox';
+      box.className = 'diag-row diag-warn';
+      box.style.marginTop = '10px';
+      fdLog.appendChild(box);
+    }
+    const safeName = slugify(sub.category) + '__' + slugify(sub.label);
+    const turboUrl = 'https://overpass-turbo.eu/?Q=' + encodeURIComponent(query) + '&R';
+    box.innerHTML = '<b>Nood-download voor ' + escapeHtml(sub.label) + ':</b><br>'
+      + '<a href="' + directUrl + '" target="_blank" rel="noopener" style="display:inline-block;margin:6px 6px 0 0;padding:7px 11px;background:#f68b1f;color:#210026;border-radius:10px;font-weight:900;text-decoration:none">Open Overpass in nieuw tabblad</a>'
+      + '<a href="' + turboUrl + '" target="_blank" rel="noopener" style="display:inline-block;margin:6px 6px 0 0;padding:7px 11px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:10px;font-weight:900;text-decoration:none">Open in Overpass Turbo</a>'
+      + '<br><small style="color:#dac3dc">Sla het resultaat op via je browser (Ctrl+S) en hernoem naar <code>' + safeName + '.geojson</code>.</small>';
+  }
+  async function downloadSingleSubcategory(subId, btn){
+    if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
+    if(!state.finalized) finishPolygon();
+    const sub = findSubcategory(subId);
+    if(!sub){ return; }
+    const query = buildQueryForSubcategory(sub);
+    if(!query){ return; }
+    resetDiagnostics();
+    addDiagnostic('info', 'Download ' + sub.label + ' gestart...');
+    showProgress('Ophalen: ' + sub.label, 0);
+    const originalLabel = btn ? btn.textContent : '';
+    if(btn){ btn.classList.add('busy'); btn.classList.remove('done'); btn.textContent = '...'; }
+    try{
+      const result = await fetchOverpassJson(query);
+      const elements = (result.json && result.json.elements) ? result.json.elements : [];
+      addDiagnostic('ok', sub.label + ': ' + elements.length + ' OSM-objecten via ' + result.method);
+      const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
+      if(features.length === 0){
+        addDiagnostic('warn', sub.label + ': geen objecten binnen het polygoon.');
+        showMessage('Geen objecten gevonden voor ' + sub.label, 'error');
+        if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '\u2B07'; }
+        hideProgress();
+        return;
+      }
+      mergeFeaturesIntoState(features);
+      renderMap();
+      const geojson = {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + result.method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
+      const filename = slugify(sub.category) + '__' + slugify(sub.label) + '.geojson';
+      downloadBlob(filename, JSON.stringify(geojson, null, 2), 'application/geo+json');
+      if(btn){ btn.classList.remove('busy'); btn.classList.add('done'); btn.textContent = '\u2713 ' + features.length; setTimeout(() => { btn.classList.remove('done'); btn.textContent = originalLabel || '\u2B07'; }, 4000); }
+      updateProgress(1, 1, 'Klaar');
+      setTimeout(hideProgress, 800);
+      showMessage('Gedownload: ' + filename + ' (' + features.length + ' objecten).', 'ok');
+    }catch(err){
+      const msg = err && err.message ? err.message : String(err);
+      addDiagnostic('error', sub.label + ' mislukt: ' + msg);
+      const directUrl = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+      showFallbackDownload(sub, directUrl, query);
+      showMessage('Download ' + sub.label + ' mislukt. Gebruik nood-download knop in Diagnose.', 'error');
+      if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '\u2B07'; }
+      hideProgress();
+    }
+  }
+  async function downloadCategory(catId, btn){
+    if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
+    if(!state.finalized) finishPolygon();
+    const cat = CATEGORIES.find(c => c.id === catId);
+    if(!cat) return;
+    resetDiagnostics();
+    addDiagnostic('info', 'Download categorie "' + cat.title + '" gestart (' + cat.subs.length + ' subcategorieen).');
+    showProgress('Categorie: ' + cat.title, cat.subs.length);
+    const originalLabel = btn ? btn.textContent : '';
+    if(btn){ btn.classList.add('busy'); btn.classList.remove('done'); btn.textContent = 'Bezig...'; }
+    const files = [];
+    let totalFeatures = 0;
+    const failed = [];
+    let done = 0;
+    for(const subRef of cat.subs){
+      const sub = {...subRef, category: cat.title};
+      updateProgress(done, cat.subs.length, sub.label);
+      const query = buildQueryForSubcategory(sub);
+      if(!query){ failed.push(sub.label); done++; continue; }
+      try{
+        const result = await fetchOverpassJson(query);
+        const elements = (result.json && result.json.elements) ? result.json.elements : [];
+        addDiagnostic('ok', sub.label + ': ' + elements.length + ' via ' + result.method);
+        const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
+        if(features.length){
+          mergeFeaturesIntoState(features);
+          const geojson = {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + result.method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
+          files.push({name: slugify(sub.label) + '.geojson', content: JSON.stringify(geojson, null, 2)});
+          totalFeatures += features.length;
+        }
+      }catch(err){
+        const msg = err && err.message ? err.message : String(err);
+        addDiagnostic('error', sub.label + ' mislukt: ' + msg);
+        failed.push(sub.label);
+      }
+      done++;
+      updateProgress(done, cat.subs.length, sub.label);
+    }
+    setTimeout(hideProgress, 800);
+    renderMap();
+    if(files.length === 0){
+      if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '\u2B07 ZIP'; }
+      showMessage('Geen data voor ' + cat.title + '.', 'error');
+      return;
+    }
+    const zipBlob = makeZip(files);
+    downloadBlob(slugify(cat.title) + '.zip', zipBlob, 'application/zip');
+    if(btn){ btn.classList.remove('busy'); btn.classList.add('done'); btn.textContent = '\u2713 ' + totalFeatures; setTimeout(() => { btn.classList.remove('done'); btn.textContent = originalLabel || '\u2B07 ZIP'; }, 4000); }
+    showMessage('Gedownload: ' + slugify(cat.title) + '.zip met ' + files.length + ' lagen (' + totalFeatures + ' objecten).', 'ok');
+  }
+  async function downloadAllSelectedZip(){
+    if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
+    if(!state.finalized) finishPolygon();
+    const selected = selectedSubcategories();
+    if(selected.length === 0){ showMessage('Selecteer minimaal 1 subcategorie.', 'error'); return; }
+    const btn = document.getElementById('zipAllBtn');
+    const originalLabel = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = 'Bezig met ophalen...'; }
+    resetDiagnostics();
+    addDiagnostic('info', 'ZIP-download van ' + selected.length + ' subcategorieen gestart.');
+    showProgress('Alles ophalen', selected.length);
+    const files = [];
+    let total = 0;
+    const failed = [];
+    let done = 0;
+    for(const sub of selected){
+      updateProgress(done, selected.length, sub.label);
+      const query = buildQueryForSubcategory(sub);
+      if(!query){ failed.push(sub.label); done++; continue; }
+      try{
+        const result = await fetchOverpassJson(query);
+        const elements = (result.json && result.json.elements) ? result.json.elements : [];
+        addDiagnostic('ok', sub.label + ': ' + elements.length + ' via ' + result.method);
+        const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
+        if(features.length){
+          mergeFeaturesIntoState(features);
+          const geo = {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + result.method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
+          files.push({name: slugify(sub.category) + '__' + slugify(sub.label) + '.geojson', content: JSON.stringify(geo, null, 2)});
+          total += features.length;
+        }
+      }catch(err){
+        failed.push(sub.label);
+        addDiagnostic('error', sub.label + ' mislukt: ' + (err && err.message ? err.message : err));
+      }
+      done++;
+      updateProgress(done, selected.length, sub.label);
+    }
+    setTimeout(hideProgress, 800);
+    renderMap();
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel || '\u2B07 Download alle geselecteerde als ZIP'; }
+    if(!files.length){ showMessage('Geen enkele laag opgehaald.', 'error'); return; }
+    const zipBlob = makeZip(files);
+    downloadBlob('osm-omgevingsdata-' + Date.now() + '.zip', zipBlob, 'application/zip');
+    showMessage('Gedownload: ZIP met ' + files.length + ' lagen (' + total + ' objecten)' + (failed.length ? ' - ' + failed.length + ' mislukt' : '') + '.', 'ok');
+  }
   function initCategorySearch(){
     const inp = document.getElementById('catSearchInput');
     const clr = document.getElementById('catSearchClear');
@@ -1685,10 +1858,10 @@
         cat.classList.toggle('hidden', !!q && visible === 0);
         if(q && visible > 0) cat.classList.add('open');
       });
-      clr.style.opacity = q ? '1' : '.5';
+      if(clr) clr.style.opacity = q ? '1' : '.5';
     }
     inp.addEventListener('input', applyFilter);
-    clr.addEventListener('click', () => { inp.value = ''; applyFilter(); inp.focus(); });
+    if(clr) clr.addEventListener('click', () => { inp.value = ''; applyFilter(); inp.focus(); });
   }
   function initSideToggle(){
     const side = document.querySelector('.side');
@@ -1697,7 +1870,7 @@
     let collapsed = false;
     function apply(){
       side.classList.toggle('collapsed', collapsed);
-      btn.textContent = collapsed ? '☰' : '✕';
+      btn.textContent = collapsed ? '\u2630' : '\u2715';
       btn.title = collapsed ? 'Paneel tonen' : 'Paneel verbergen';
     }
     btn.addEventListener('click', () => { collapsed = !collapsed; apply(); });
@@ -1739,8 +1912,7 @@
   }
   function initKeyboardShortcuts(){
     document.addEventListener('keydown', e => {
-      const isInput = /^(INPUT|TEXTAREA|SELECT)$/i.test(e.target.tagName);
-      if(isInput) return;
+      if(/^(INPUT|TEXTAREA|SELECT)$/i.test(e.target.tagName)) return;
       if((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)){ e.preventDefault(); undoPoint(); }
       else if(e.key === 'Escape'){ e.preventDefault(); clearPolygon(); }
       else if(e.key === 'Enter'){ e.preventDefault(); finishPolygon(); }
@@ -1748,33 +1920,96 @@
   }
   function initZipAllBtn(){
     const btn = document.getElementById('zipAllBtn');
-    if(!btn) return;
-    btn.addEventListener('click', downloadAllSelectedZip);
+    if(btn) btn.addEventListener('click', downloadAllSelectedZip);
   }
-  function init(){
-    initEls();
-    renderCategories();
-    initMapEvents();
-    initSearch();
-    els.fetchBtn.addEventListener('click', fetchOverpass);
-    els.downloadCombinedBtn.addEventListener('click', downloadCombined);
-    els.downloadZipBtn.addEventListener('click', downloadZip);
-    renderMap();
-    initCategorySearch();
-    initSideToggle();
-    initControlCard();
-    initKeyboardShortcuts();
-    initZipAllBtn();
-    initFloatingDiag();
-    // Force re-render zodat fullscreen layout klopt na paint
-    requestAnimationFrame(() => renderMap());
-    setTimeout(() => renderMap(), 60);
-    setTimeout(() => renderMap(), 300);
-    if(location.protocol === 'file:' || location.origin === 'null'){
-      showMessage('Let op: dit bestand draait vanaf je lokale schijf (file://). Overpass en de gratis CORS-proxies blokkeren dan de meeste downloads. Beste oplossing: open een terminal in de map van dit bestand en draai "python -m http.server", en open dan http://localhost:8000. Als er toch een fout komt, verschijnt in het Diagnose-paneel een "Nood-download" knop.', '');
+  // V8 renderFeatureLayer met kleuren + labels — overrule origineel
+  window.renderFeatureLayer = function(){
+    if(!state.features || !state.features.length) return '';
+    const showLabels = state.zoom >= 15;
+    const usedLabelBoxes = [];
+    function reserveLabel(x, y, textLen){
+      const w = Math.max(40, textLen * 6.2);
+      const h = 14;
+      const box = {x:x - w/2, y:y - h - 8, w, h};
+      for(const b of usedLabelBoxes){
+        if(!(box.x + box.w < b.x || b.x + b.w < box.x || box.y + box.h < b.y || b.y + b.h < box.y)) return null;
+      }
+      usedLabelBoxes.push(box);
+      return box;
     }
+    let svgFeatures = '';
+    let svgLabels = '';
+    state.features.forEach(feature => {
+      const props = feature.properties || {};
+      const geom = feature.geometry;
+      if(!geom) return;
+      const color = categoryColorByTitle(props.categorie);
+      const label = props.name || props['name:nl'] || props.alt_name || props.operator || props.brand || props.ref || '';
+      const labelSafe = escapeHtml(label || props.subcategorie || 'OSM');
+      const strokeMain = color.main;
+      const fillSoft = color.soft;
+      if(geom.type === 'Point'){
+        const p = coordToScreen(geom.coordinates);
+        if(!p) return;
+        svgFeatures += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="6.5" fill="' + strokeMain + '" stroke="#fff" stroke-width="2.2" style="filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))"><title>' + labelSafe + '</title></circle>';
+        if(showLabels && label){
+          const box = reserveLabel(p.x, p.y, label.length);
+          if(box) svgLabels += '<text class="osm-label" x="' + p.x.toFixed(1) + '" y="' + (p.y - 10).toFixed(1) + '" text-anchor="middle">' + escapeHtml(label) + '</text>';
+        }
+      }else if(geom.type === 'LineString'){
+        const line = coordsToPointString(geom.coordinates);
+        if(!line) return;
+        svgFeatures += '<polyline points="' + line + '" fill="none" stroke="' + strokeMain + '" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))"><title>' + labelSafe + '</title></polyline>';
+        if(showLabels && label){
+          const mid = coordToScreen(geom.coordinates[Math.floor(geom.coordinates.length/2)]);
+          if(mid){
+            const box = reserveLabel(mid.x, mid.y, label.length);
+            if(box) svgLabels += '<text class="osm-label" x="' + mid.x.toFixed(1) + '" y="' + (mid.y - 6).toFixed(1) + '" text-anchor="middle">' + escapeHtml(label) + '</text>';
+          }
+        }
+      }else if(geom.type === 'Polygon'){
+        const ring = geom.coordinates && geom.coordinates[0];
+        const poly = coordsToPointString(ring || []);
+        if(!poly) return;
+        svgFeatures += '<polygon points="' + poly + '" fill="' + fillSoft + '" stroke="' + strokeMain + '" stroke-width="2.5" stroke-linejoin="round"><title>' + labelSafe + '</title></polygon>';
+        if(showLabels && label && ring){
+          let cx=0, cy=0, n=0;
+          for(const c of ring){ const p = coordToScreen(c); if(p){ cx += p.x; cy += p.y; n++; } }
+          if(n){
+            cx /= n; cy /= n;
+            const box = reserveLabel(cx, cy, label.length);
+            if(box) svgLabels += '<text class="osm-label" x="' + cx.toFixed(1) + '" y="' + cy.toFixed(1) + '" text-anchor="middle">' + escapeHtml(label) + '</text>';
+          }
+        }
+      }
+    });
+    return svgFeatures + svgLabels;
+  };
+  // syncCategoryInputs override om download-knoppen levend te houden
+  if(typeof syncCategoryInputs === 'function'){
+    const _origSync = syncCategoryInputs;
+    window.syncCategoryInputs = function(){
+      _origSync();
+      updateSubDownloadButtons();
+    };
   }
-  init();
-  </script>
+  // Bootstrap na window load
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      renderCategoriesV8();
+      initCategorySearch();
+      initSideToggle();
+      initControlCard();
+      initKeyboardShortcuts();
+      initZipAllBtn();
+      initFloatingDiag();
+      renderMap();
+      if(location.protocol === 'file:' || location.origin === 'null'){
+        showMessage('Let op: dit bestand draait vanaf file://. Overpass en gratis proxies blokkeren dan de meeste downloads. Beste: draai "python -m http.server" en open http://localhost:8000.', '');
+      }
+    }, 80);
+  });
+
+</script>
 </body>
 </html>
