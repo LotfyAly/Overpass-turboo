@@ -84,6 +84,10 @@
     h2{margin:0;font-size:25px;letter-spacing:-.04em;line-height:1.08}
     .muted{color:var(--ink-soft);font-size:14px;line-height:1.5;margin:8px 0 0}
     .map-tools{padding:0 24px 18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .basemap-select{height:50px;min-width:168px;max-width:220px;border:1px solid var(--line);border-radius:17px;padding:0 38px 0 13px;background:var(--paper);color:var(--ink);font-weight:850;outline:none;cursor:pointer}
+    .basemap-select:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(95,193,207,.18)}
+    .tile-pane{will-change:transform;contain:layout paint size;overflow:hidden}
+    .tile-pane img{will-change:transform;transform-origin:0 0;pointer-events:none;image-rendering:auto}
     .searchbox{position:relative;flex:1;min-width:270px}
     .searchbox input{width:100%;height:50px;border:1px solid var(--line);border-radius:17px;padding:0 52px 0 16px;background:var(--paper);outline:none;color:var(--ink)}
     .searchbox input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(95,193,207,.18)}
@@ -266,6 +270,9 @@
     .step-num{background:linear-gradient(135deg,var(--pink),var(--orange));color:#fff;}
     .eyebrow{color:var(--pink-soft);}
     .searchbox input,.pill-button{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#fff;}
+    .basemap-select{background:rgba(34,0,42,.90);border-color:rgba(255,255,255,.16);color:#fff;}
+    .basemap-select option{background:#2a0032;color:#fff;}
+    .basemap-select:focus{border-color:var(--pink-soft);box-shadow:0 0 0 4px rgba(223,29,115,.22);}
     .searchbox input::placeholder{color:rgba(255,255,255,.58);}
     .searchbox input:focus{border-color:var(--pink-soft);box-shadow:0 0 0 4px rgba(223,29,115,.22);}
     .searchbox button{background:var(--pink);color:#fff;}
@@ -349,6 +356,12 @@
               <div id="searchResults" class="search-results"></div>
             </div>
             <button class="pill-button" id="locateBtn" type="button" title="Gebruik mijn locatie">📍</button>
+            <select class="basemap-select" id="basemapSelect" title="Kies achtergrondkaart" aria-label="Achtergrondkaart">
+              <option value="osm" selected>OSM standaard</option>
+              <option value="osmde">OSM.de</option>
+              <option value="hot">OSM Humanitair</option>
+              <option value="none">Geen achtergrond</option>
+            </select>
           </div>
           <div class="cc-status" id="drawStatus3"><strong>Nog geen gebied.</strong> Klik op de kaart om te starten. Sleep om te pannen, muiswiel om te zoomen.</div>
           <div class="cc-actions">
@@ -366,7 +379,7 @@
             <button class="map-control" id="zoomOutBtn" type="button" title="Uitzoomen">-</button>
           </div>
           <!-- map-hint verplaatst naar control-card -->
-          <div class="map-attrib">Kaartdata © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Tiles © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a></div>
+          <div class="map-attrib" id="mapAttrib">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-bijdragers</a></div>
         </div>
         <div class="map-footer">
           <div id="drawStatus" class="status"><strong>Nog geen gebied.</strong> Klik op de kaart om het eerste hoekpunt te plaatsen.</div>
@@ -506,9 +519,38 @@
     ]}
   ];
 
+  const BASEMAPS = {
+    osm:{
+      label:'OpenStreetMap standaard',
+      url:(z,x,y) => 'https://tile.openstreetmap.org/' + z + '/' + x + '/' + y + '.png',
+      minZoom:0, maxZoom:19,
+      attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-bijdragers</a>'
+    },
+    osmde:{
+      label:'OpenStreetMap.de',
+      url:(z,x,y) => 'https://tile.openstreetmap.de/' + z + '/' + x + '/' + y + '.png',
+      minZoom:0, maxZoom:19,
+      attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-bijdragers</a> · tiles: <a href="https://www.openstreetmap.de/" target="_blank" rel="noopener">OSM.de</a>'
+    },
+    hot:{
+      label:'Humanitarian OpenStreetMap',
+      url:(z,x,y) => 'https://' + ['a','b','c'][Math.abs(x + y) % 3] + '.tile.openstreetmap.fr/hot/' + z + '/' + x + '/' + y + '.png',
+      minZoom:1, maxZoom:19,
+      attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-bijdragers</a> · tiles: <a href="https://www.hotosm.org/" target="_blank" rel="noopener">HOT</a>'
+    },
+    none:{
+      label:'Geen achtergrond',
+      url:null, minZoom:0, maxZoom:19, attribution:'Geen achtergrondkaart'
+    }
+  };
+
+  let _tileNodes = new Map();
+  let _activeBasemapId = null;
+
   const state = {
     center:{lat:52.0907, lon:5.1214},
     zoom:13,
+    basemap:'osm',
     points:[],
     finalized:false,
     selected:new Set(),
@@ -520,7 +562,7 @@
   function $(id){return document.getElementById(id)}
 
   function initEls(){
-    ['map','tilePane','drawPane','drawStatus','undoBtn','clearBtn','finishBtn','zoomInBtn','zoomOutBtn','searchInput','searchBtn','searchResults','locateBtn','categoryList','selectionSummary','fetchBtn','message','resultBox','resultTotal','resultLines','downloadCombinedBtn','downloadZipBtn','queryOut','turboLink','diagBox','diagLog'].forEach(id => els[id] = $(id));
+    ['map','tilePane','drawPane','drawStatus','undoBtn','clearBtn','finishBtn','zoomInBtn','zoomOutBtn','searchInput','searchBtn','searchResults','locateBtn','basemapSelect','mapAttrib','categoryList','selectionSummary','fetchBtn','message','resultBox','resultTotal','resultLines','downloadCombinedBtn','downloadZipBtn','queryOut','turboLink','diagBox','diagLog'].forEach(id => els[id] = $(id));
   }
 
   function normalizeLon(lon){
@@ -566,46 +608,90 @@
   }
 
   let _renderRaf = null;
+  let _statusDirty = true;
   function renderMap(){
     if(_renderRaf) return;
     _renderRaf = requestAnimationFrame(() => {
       _renderRaf = null;
       renderTiles();
       renderPolygon();
-      updateStatus();
+      if(_statusDirty){ updateStatus(); _statusDirty = false; }
     });
   }
   function renderMapSync(){
     if(_renderRaf){ cancelAnimationFrame(_renderRaf); _renderRaf = null; }
     renderTiles();
     renderPolygon();
-    updateStatus();
+    if(_statusDirty){ updateStatus(); _statusDirty = false; }
+  }
+
+  function clearTileNodes(){
+    _tileNodes.forEach(img => img.remove());
+    _tileNodes.clear();
+    if(els.tilePane) els.tilePane.replaceChildren();
   }
 
   function renderTiles(){
+    const basemap = BASEMAPS[state.basemap] || BASEMAPS.osm;
+    const z = Math.round(state.zoom);
+
+    if(_activeBasemapId !== state.basemap){
+      clearTileNodes();
+      _activeBasemapId = state.basemap;
+    }
+    if(els.mapAttrib) els.mapAttrib.innerHTML = basemap.attribution;
+    if(!basemap.url){
+      clearTileNodes();
+      return;
+    }
+
     const size = mapSize();
-    const c = centerWorld();
+    const c = latLonToWorld(state.center.lat, state.center.lon, z);
     const topLeftX = c.x - size.w / 2;
     const topLeftY = c.y - size.h / 2;
-    const startX = Math.floor(topLeftX / TILE_SIZE) - 1;
-    const endX = Math.floor((topLeftX + size.w) / TILE_SIZE) + 1;
-    const startY = Math.floor(topLeftY / TILE_SIZE) - 1;
-    const endY = Math.floor((topLeftY + size.h) / TILE_SIZE) + 1;
-    const tilesPerAxis = Math.pow(2, state.zoom);
-    let html = '';
+    const overscan = 1;
+    const startX = Math.floor(topLeftX / TILE_SIZE) - overscan;
+    const endX = Math.floor((topLeftX + size.w) / TILE_SIZE) + overscan;
+    const startY = Math.floor(topLeftY / TILE_SIZE) - overscan;
+    const endY = Math.floor((topLeftY + size.h) / TILE_SIZE) + overscan;
+    const tilesPerAxis = Math.pow(2, z);
+    const needed = new Set();
+
     for(let tx = startX; tx <= endX; tx++){
       for(let ty = startY; ty <= endY; ty++){
         if(ty < 0 || ty >= tilesPerAxis) continue;
         const wrappedX = ((tx % tilesPerAxis) + tilesPerAxis) % tilesPerAxis;
+        const key = state.basemap + ':' + z + ':' + wrappedX + ':' + ty + ':' + tx;
+        needed.add(key);
         const left = Math.round(tx * TILE_SIZE - topLeftX);
         const top = Math.round(ty * TILE_SIZE - topLeftY);
-        const servers = ['a','b','c','d'];
-        const server = servers[Math.abs(wrappedX + ty) % servers.length];
-        const url = 'https://' + server + '.basemaps.cartocdn.com/light_all/' + state.zoom + '/' + wrappedX + '/' + ty + '.png';
-        html += '<img alt="" draggable="false" referrerpolicy="no-referrer" src="' + url + '" onerror="this.style.display=\'none\'" style="transform:translate(' + left + 'px,' + top + 'px)">';
+        let img = _tileNodes.get(key);
+        if(!img){
+          img = document.createElement('img');
+          img.alt = '';
+          img.draggable = false;
+          img.decoding = 'async';
+          img.width = TILE_SIZE;
+          img.height = TILE_SIZE;
+          img.dataset.tileKey = key;
+          img.addEventListener('error', () => { img.style.visibility = 'hidden'; }, {once:true});
+          img.addEventListener('load', () => { img.style.visibility = 'visible'; }, {once:true});
+          img.src = basemap.url(z, wrappedX, ty);
+          els.tilePane.appendChild(img);
+          _tileNodes.set(key, img);
+        }
+        img.style.transform = 'translate3d(' + left + 'px,' + top + 'px,0)';
       }
     }
-    els.tilePane.innerHTML = html;
+
+    // Verwijder alleen tegels die buiten de huidige viewport + 1 tegel marge vallen.
+    // Zichtbare tegels blijven als DOM-node bestaan en worden tijdens pannen dus niet opnieuw aangevraagd.
+    _tileNodes.forEach((img, key) => {
+      if(!needed.has(key)){
+        img.remove();
+        _tileNodes.delete(key);
+      }
+    });
   }
 
   function renderPolygon(){
@@ -720,11 +806,13 @@
     const y = e.clientY - rect.top;
     const ll = screenToLatLon(x, y);
     state.points.push({lat:ll.lat, lon:ll.lon});
+    _statusDirty = true;
     renderMap();
   }
   function finishPolygon(){
     if(state.points.length < 3){showMessage('Teken eerst minimaal 3 hoekpunten.', 'error'); return false;}
     state.finalized = true;
+    _statusDirty = true;
     renderMap();
     if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
     return true;
@@ -734,6 +822,7 @@
     state.finalized = false;
     state.features = [];
     state.grouped = {};
+    _statusDirty = true;
     els.resultBox.style.display = 'none';
     showMessage('', '');
     renderMap();
@@ -745,6 +834,7 @@
     if(!state.points.length) return;
     state.finalized = false;
     state.points.pop();
+    _statusDirty = true;
     renderMap();
     if(typeof updateSubDownloadButtons === 'function') updateSubDownloadButtons();
   }
@@ -840,33 +930,37 @@
   let _viewAnim = null;
   function animateView(targetZoom, targetCenter, durationMs){
     if(_viewAnim){ cancelAnimationFrame(_viewAnim.raf); _viewAnim = null; }
-    const startZoom = state.zoom;
-    const startCenter = {lat: state.center.lat, lon: state.center.lon};
+    // XYZ-rastertiles bestaan alleen op gehele zoomniveaus. Wissel het zoomniveau direct
+    // en animeer alleen het centrum; zo ontstaan geen ongeldige tile-URL's met zoom 13.4 etc.
+    state.zoom = Math.round(targetZoom);
+    const startCenter = {lat:state.center.lat, lon:state.center.lon};
     const t0 = performance.now();
     const ease = t => 1 - Math.pow(1 - t, 3);
     function step(now){
-      const t = Math.min(1, (now - t0) / durationMs);
+      const t = Math.min(1, (now - t0) / Math.max(1, durationMs));
       const k = ease(t);
-      state.zoom = startZoom + (targetZoom - startZoom) * k;
       state.center = {
-        lat: startCenter.lat + (targetCenter.lat - startCenter.lat) * k,
-        lon: startCenter.lon + (targetCenter.lon - startCenter.lon) * k
+        lat:startCenter.lat + (targetCenter.lat - startCenter.lat) * k,
+        lon:startCenter.lon + (targetCenter.lon - startCenter.lon) * k
       };
       renderMapSync();
-      if(t < 1){ _viewAnim.raf = requestAnimationFrame(step); }
-      else{ state.zoom = targetZoom; state.center = targetCenter; _viewAnim = null; renderMapSync(); }
+      if(t < 1) _viewAnim.raf = requestAnimationFrame(step);
+      else { state.center = targetCenter; _viewAnim = null; renderMapSync(); }
     }
-    _viewAnim = {raf: requestAnimationFrame(step)};
+    _viewAnim = {raf:requestAnimationFrame(step)};
   }
   function zoomAt(delta, sx, sy){
-    const oldZoom = state.zoom;
-    const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, oldZoom + delta));
+    const oldZoom = Math.round(state.zoom);
+    const basemap = BASEMAPS[state.basemap] || BASEMAPS.osm;
+    const minZoom = Math.max(MIN_ZOOM, basemap.minZoom ?? MIN_ZOOM);
+    const maxZoom = Math.min(MAX_ZOOM, basemap.maxZoom ?? MAX_ZOOM);
+    const newZoom = Math.max(minZoom, Math.min(maxZoom, oldZoom + delta));
     if(newZoom === oldZoom) return;
     const ll = screenToLatLon(sx, sy);
     const p = latLonToWorld(ll.lat, ll.lon, newZoom);
     const size = mapSize();
     const targetCenter = worldToLatLon(p.x - sx + size.w / 2, p.y - sy + size.h / 2, newZoom);
-    animateView(newZoom, targetCenter, 260);
+    animateView(newZoom, targetCenter, 140);
   }
 
   function renderCategories(){
@@ -1362,6 +1456,19 @@
       showMessage('Zoeken lukt nu niet. Je kunt ook handmatig inzoomen en slepen op de kaart. Fout: ' + err.message, 'error');
     }
   }
+  function initBasemapSelect(){
+    if(!els.basemapSelect) return;
+    els.basemapSelect.value = state.basemap;
+    els.basemapSelect.addEventListener('change', () => {
+      state.basemap = BASEMAPS[els.basemapSelect.value] ? els.basemapSelect.value : 'osm';
+      const bm = BASEMAPS[state.basemap];
+      state.zoom = Math.max(Math.max(MIN_ZOOM, bm.minZoom ?? MIN_ZOOM), Math.min(Math.min(MAX_ZOOM, bm.maxZoom ?? MAX_ZOOM), Math.round(state.zoom)));
+      clearTileNodes();
+      renderMap();
+      showToast('Achtergrondkaart: ' + bm.label, 'ok');
+    });
+  }
+
   function initSearch(){
     els.searchBtn.addEventListener('click', searchLocation);
     els.searchInput.addEventListener('keydown', e => { if(e.key === 'Enter') searchLocation(); });
@@ -1714,6 +1821,7 @@
     initEls();
     renderCategories();
     initMapEvents();
+    initBasemapSelect();
     initSearch();
     els.fetchBtn.addEventListener('click', fetchOverpass);
     els.downloadCombinedBtn.addEventListener('click', downloadCombined);
