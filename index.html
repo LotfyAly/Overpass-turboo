@@ -649,7 +649,7 @@
     const c = latLonToWorld(state.center.lat, state.center.lon, z);
     const topLeftX = c.x - size.w / 2;
     const topLeftY = c.y - size.h / 2;
-    const overscan = 1;
+    const overscan = 2; // extra marge voorkomt lege randen tijdens vloeiende zoom-out
     const startX = Math.floor(topLeftX / TILE_SIZE) - overscan;
     const endX = Math.floor((topLeftX + size.w) / TILE_SIZE) + overscan;
     const startY = Math.floor(topLeftY / TILE_SIZE) - overscan;
@@ -898,19 +898,30 @@
     let wheelAccum = 0;
     let wheelResetTimer = null;
     let lastWheelTs = 0;
-    const WHEEL_THRESHOLD = 260;
-    const WHEEL_COOLDOWN_MS = 320;
+    let lastWheelSign = 0;
+    // Een normale muiswielstap is vaak ongeveer 100px. De oude drempel van 260
+    // zorgde daardoor voor meerdere 'loze' wielstappen voordat er iets gebeurde.
+    const WHEEL_THRESHOLD = 64;
+    const WHEEL_COOLDOWN_MS = 145;
     els.map.addEventListener('wheel', e => {
       e.preventDefault();
       const now = performance.now();
       let dy = e.deltaY;
       if(e.deltaMode === 1) dy *= 16;
       else if(e.deltaMode === 2) dy *= 800;
+
+      // Bij omkeren van de scrollrichting oude opgebouwde delta weggooien.
+      const sign = Math.sign(dy);
+      if(lastWheelSign && sign && sign !== lastWheelSign) wheelAccum = 0;
+      if(sign) lastWheelSign = sign;
       wheelAccum += dy;
+
       clearTimeout(wheelResetTimer);
-      wheelResetTimer = setTimeout(() => { wheelAccum = 0; }, 320);
-      if(Math.abs(wheelAccum) < WHEEL_THRESHOLD) return;
+      wheelResetTimer = setTimeout(() => { wheelAccum = 0; lastWheelSign = 0; }, 180);
+      const threshold = e.ctrlKey ? 24 : WHEEL_THRESHOLD; // trackpad/pinch is meestal fijner
+      if(Math.abs(wheelAccum) < threshold) return;
       if(now - lastWheelTs < WHEEL_COOLDOWN_MS) return;
+
       const delta = wheelAccum < 0 ? 1 : -1;
       wheelAccum = 0;
       lastWheelTs = now;
@@ -928,39 +939,89 @@
   }
 
   let _viewAnim = null;
-  function animateView(targetZoom, targetCenter, durationMs){
-    if(_viewAnim){ cancelAnimationFrame(_viewAnim.raf); _viewAnim = null; }
-    // XYZ-rastertiles bestaan alleen op gehele zoomniveaus. Wissel het zoomniveau direct
-    // en animeer alleen het centrum; zo ontstaan geen ongeldige tile-URL's met zoom 13.4 etc.
-    state.zoom = Math.round(targetZoom);
-    const startCenter = {lat:state.center.lat, lon:state.center.lon};
-    const t0 = performance.now();
-    const ease = t => 1 - Math.pow(1 - t, 3);
-    function step(now){
-      const t = Math.min(1, (now - t0) / Math.max(1, durationMs));
-      const k = ease(t);
-      state.center = {
-        lat:startCenter.lat + (targetCenter.lat - startCenter.lat) * k,
-        lon:startCenter.lon + (targetCenter.lon - startCenter.lon) * k
-      };
-      renderMapSync();
-      if(t < 1) _viewAnim.raf = requestAnimationFrame(step);
-      else { state.center = targetCenter; _viewAnim = null; renderMapSync(); }
-    }
-    _viewAnim = {raf:requestAnimationFrame(step)};
+  let _zoomAnimTimer = null;
+
+  function resetZoomPreview(){
+    [els.tilePane, els.drawPane].forEach(pane => {
+      if(!pane) return;
+      pane.style.transition = 'none';
+      pane.style.transform = 'none';
+      pane.style.transformOrigin = '0 0';
+    });
   }
+
+  function finishActiveZoom(){
+    if(!_viewAnim) return;
+    clearTimeout(_zoomAnimTimer);
+    const pending = _viewAnim;
+    _viewAnim = null;
+    resetZoomPreview();
+    state.zoom = pending.targetZoom;
+    state.center = pending.targetCenter;
+    renderMapSync();
+  }
+
+  function animateView(targetZoom, targetCenter, durationMs, sx, sy){
+    // Als de gebruiker snel meerdere keren zoomt, rond de vorige stap eerst exact af.
+    // Zo stapelen CSS-transforms zich nooit op en blijft het punt onder de muis stabiel.
+    finishActiveZoom();
+
+    const oldZoom = Math.round(state.zoom);
+    const scale = Math.pow(2, targetZoom - oldZoom);
+    const originX = Number.isFinite(sx) ? sx : mapSize().w / 2;
+    const originY = Number.isFinite(sy) ? sy : mapSize().h / 2;
+    const duration = Math.max(120, durationMs || 190);
+    const panes = [els.tilePane, els.drawPane].filter(Boolean);
+
+    // Rastertiles blijven gedurende de animatie staan. Alleen de bestaande kaart wordt
+    // GPU-versneld geschaald rond de cursor. Na afloop wisselen we in één keer naar de
+    // echte XYZ-tiles van het nieuwe gehele zoomniveau.
+    panes.forEach(pane => {
+      pane.style.transition = 'none';
+      pane.style.transform = 'none';
+      pane.style.transformOrigin = originX + 'px ' + originY + 'px';
+      pane.style.willChange = 'transform';
+    });
+    // Forceer één layout-pass zodat de browser de start- en eindtoestand niet samenvoegt.
+    void els.map.offsetWidth;
+
+    _viewAnim = {targetZoom, targetCenter};
+    requestAnimationFrame(() => {
+      if(!_viewAnim) return;
+      panes.forEach(pane => {
+        pane.style.transition = 'transform ' + duration + 'ms cubic-bezier(.22,.61,.36,1)';
+        pane.style.transform = 'scale(' + scale + ')';
+      });
+    });
+
+    _zoomAnimTimer = setTimeout(() => {
+      if(!_viewAnim) return;
+      const pending = _viewAnim;
+      _viewAnim = null;
+      resetZoomPreview();
+      state.zoom = pending.targetZoom;
+      state.center = pending.targetCenter;
+      renderMapSync();
+      panes.forEach(pane => { pane.style.willChange = 'auto'; });
+    }, duration + 18);
+  }
+
   function zoomAt(delta, sx, sy){
+    // Een lopende visuele zoom eerst committen, zodat de volgende stap vanaf de correcte
+    // geografische toestand wordt berekend.
+    finishActiveZoom();
     const oldZoom = Math.round(state.zoom);
     const basemap = BASEMAPS[state.basemap] || BASEMAPS.osm;
     const minZoom = Math.max(MIN_ZOOM, basemap.minZoom ?? MIN_ZOOM);
     const maxZoom = Math.min(MAX_ZOOM, basemap.maxZoom ?? MAX_ZOOM);
     const newZoom = Math.max(minZoom, Math.min(maxZoom, oldZoom + delta));
     if(newZoom === oldZoom) return;
+
     const ll = screenToLatLon(sx, sy);
     const p = latLonToWorld(ll.lat, ll.lon, newZoom);
     const size = mapSize();
     const targetCenter = worldToLatLon(p.x - sx + size.w / 2, p.y - sy + size.h / 2, newZoom);
-    animateView(newZoom, targetCenter, 140);
+    animateView(newZoom, targetCenter, 190, sx, sy);
   }
 
   function renderCategories(){
