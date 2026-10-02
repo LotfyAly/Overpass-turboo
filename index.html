@@ -460,11 +460,8 @@
     {name:'corsproxy.io', build:url => 'https://corsproxy.io/?url=' + encodeURIComponent(url)}
   ];
   const TIMEOUT_SECONDS = 180;
-  const FETCH_TIMEOUT_MS = 45000;   // zware lagen (gebouwen, wegen) hebben tijd nodig voordat Overpass antwoordt
-  const PROXY_TIMEOUT_MS = 55000;
-  const LAYER_BUDGET_MS = 150000;   // maximale totale tijd per laag over alle servers/proxies heen
-  const LAYER_PAUSE_MS = 1500;      // korte pauze tussen lagen tegen rate-limiting (HTTP 429)
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const FETCH_TIMEOUT_MS = 12000;
+  const PROXY_TIMEOUT_MS = 22000;
   const JSONP_TIMEOUT_MS = 16000;
 
   async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS){
@@ -479,22 +476,6 @@
         credentials:'omit',
         cache:'no-store'
       });
-    }finally{
-      clearTimeout(timer);
-    }
-  }
-  async function fetchJsonTimed(url, options, timeoutMs, label){
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try{
-      const res = await fetch(url, {
-        ...options,
-        headers: {'Accept':'application/json, text/plain, */*', ...((options && options.headers) || {})},
-        signal:controller.signal,
-        credentials:'omit',
-        cache:'no-store'
-      });
-      return await readJsonResponse(res, label);   // body lezen valt ook binnen de timeout
     }finally{
       clearTimeout(timer);
     }
@@ -668,7 +649,7 @@
     const c = latLonToWorld(state.center.lat, state.center.lon, z);
     const topLeftX = c.x - size.w / 2;
     const topLeftY = c.y - size.h / 2;
-    const overscan = 1;
+    const overscan = 2; // extra marge voorkomt lege randen tijdens vloeiende zoom-out
     const startX = Math.floor(topLeftX / TILE_SIZE) - overscan;
     const endX = Math.floor((topLeftX + size.w) / TILE_SIZE) + overscan;
     const startY = Math.floor(topLeftY / TILE_SIZE) - overscan;
@@ -917,19 +898,30 @@
     let wheelAccum = 0;
     let wheelResetTimer = null;
     let lastWheelTs = 0;
-    const WHEEL_THRESHOLD = 260;
-    const WHEEL_COOLDOWN_MS = 320;
+    let lastWheelSign = 0;
+    // Een normale muiswielstap is vaak ongeveer 100px. De oude drempel van 260
+    // zorgde daardoor voor meerdere 'loze' wielstappen voordat er iets gebeurde.
+    const WHEEL_THRESHOLD = 64;
+    const WHEEL_COOLDOWN_MS = 145;
     els.map.addEventListener('wheel', e => {
       e.preventDefault();
       const now = performance.now();
       let dy = e.deltaY;
       if(e.deltaMode === 1) dy *= 16;
       else if(e.deltaMode === 2) dy *= 800;
+
+      // Bij omkeren van de scrollrichting oude opgebouwde delta weggooien.
+      const sign = Math.sign(dy);
+      if(lastWheelSign && sign && sign !== lastWheelSign) wheelAccum = 0;
+      if(sign) lastWheelSign = sign;
       wheelAccum += dy;
+
       clearTimeout(wheelResetTimer);
-      wheelResetTimer = setTimeout(() => { wheelAccum = 0; }, 320);
-      if(Math.abs(wheelAccum) < WHEEL_THRESHOLD) return;
+      wheelResetTimer = setTimeout(() => { wheelAccum = 0; lastWheelSign = 0; }, 180);
+      const threshold = e.ctrlKey ? 24 : WHEEL_THRESHOLD; // trackpad/pinch is meestal fijner
+      if(Math.abs(wheelAccum) < threshold) return;
       if(now - lastWheelTs < WHEEL_COOLDOWN_MS) return;
+
       const delta = wheelAccum < 0 ? 1 : -1;
       wheelAccum = 0;
       lastWheelTs = now;
@@ -947,39 +939,89 @@
   }
 
   let _viewAnim = null;
-  function animateView(targetZoom, targetCenter, durationMs){
-    if(_viewAnim){ cancelAnimationFrame(_viewAnim.raf); _viewAnim = null; }
-    // XYZ-rastertiles bestaan alleen op gehele zoomniveaus. Wissel het zoomniveau direct
-    // en animeer alleen het centrum; zo ontstaan geen ongeldige tile-URL's met zoom 13.4 etc.
-    state.zoom = Math.round(targetZoom);
-    const startCenter = {lat:state.center.lat, lon:state.center.lon};
-    const t0 = performance.now();
-    const ease = t => 1 - Math.pow(1 - t, 3);
-    function step(now){
-      const t = Math.min(1, (now - t0) / Math.max(1, durationMs));
-      const k = ease(t);
-      state.center = {
-        lat:startCenter.lat + (targetCenter.lat - startCenter.lat) * k,
-        lon:startCenter.lon + (targetCenter.lon - startCenter.lon) * k
-      };
-      renderMapSync();
-      if(t < 1) _viewAnim.raf = requestAnimationFrame(step);
-      else { state.center = targetCenter; _viewAnim = null; renderMapSync(); }
-    }
-    _viewAnim = {raf:requestAnimationFrame(step)};
+  let _zoomAnimTimer = null;
+
+  function resetZoomPreview(){
+    [els.tilePane, els.drawPane].forEach(pane => {
+      if(!pane) return;
+      pane.style.transition = 'none';
+      pane.style.transform = 'none';
+      pane.style.transformOrigin = '0 0';
+    });
   }
+
+  function finishActiveZoom(){
+    if(!_viewAnim) return;
+    clearTimeout(_zoomAnimTimer);
+    const pending = _viewAnim;
+    _viewAnim = null;
+    resetZoomPreview();
+    state.zoom = pending.targetZoom;
+    state.center = pending.targetCenter;
+    renderMapSync();
+  }
+
+  function animateView(targetZoom, targetCenter, durationMs, sx, sy){
+    // Als de gebruiker snel meerdere keren zoomt, rond de vorige stap eerst exact af.
+    // Zo stapelen CSS-transforms zich nooit op en blijft het punt onder de muis stabiel.
+    finishActiveZoom();
+
+    const oldZoom = Math.round(state.zoom);
+    const scale = Math.pow(2, targetZoom - oldZoom);
+    const originX = Number.isFinite(sx) ? sx : mapSize().w / 2;
+    const originY = Number.isFinite(sy) ? sy : mapSize().h / 2;
+    const duration = Math.max(120, durationMs || 190);
+    const panes = [els.tilePane, els.drawPane].filter(Boolean);
+
+    // Rastertiles blijven gedurende de animatie staan. Alleen de bestaande kaart wordt
+    // GPU-versneld geschaald rond de cursor. Na afloop wisselen we in één keer naar de
+    // echte XYZ-tiles van het nieuwe gehele zoomniveau.
+    panes.forEach(pane => {
+      pane.style.transition = 'none';
+      pane.style.transform = 'none';
+      pane.style.transformOrigin = originX + 'px ' + originY + 'px';
+      pane.style.willChange = 'transform';
+    });
+    // Forceer één layout-pass zodat de browser de start- en eindtoestand niet samenvoegt.
+    void els.map.offsetWidth;
+
+    _viewAnim = {targetZoom, targetCenter};
+    requestAnimationFrame(() => {
+      if(!_viewAnim) return;
+      panes.forEach(pane => {
+        pane.style.transition = 'transform ' + duration + 'ms cubic-bezier(.22,.61,.36,1)';
+        pane.style.transform = 'scale(' + scale + ')';
+      });
+    });
+
+    _zoomAnimTimer = setTimeout(() => {
+      if(!_viewAnim) return;
+      const pending = _viewAnim;
+      _viewAnim = null;
+      resetZoomPreview();
+      state.zoom = pending.targetZoom;
+      state.center = pending.targetCenter;
+      renderMapSync();
+      panes.forEach(pane => { pane.style.willChange = 'auto'; });
+    }, duration + 18);
+  }
+
   function zoomAt(delta, sx, sy){
+    // Een lopende visuele zoom eerst committen, zodat de volgende stap vanaf de correcte
+    // geografische toestand wordt berekend.
+    finishActiveZoom();
     const oldZoom = Math.round(state.zoom);
     const basemap = BASEMAPS[state.basemap] || BASEMAPS.osm;
     const minZoom = Math.max(MIN_ZOOM, basemap.minZoom ?? MIN_ZOOM);
     const maxZoom = Math.min(MAX_ZOOM, basemap.maxZoom ?? MAX_ZOOM);
     const newZoom = Math.max(minZoom, Math.min(maxZoom, oldZoom + delta));
     if(newZoom === oldZoom) return;
+
     const ll = screenToLatLon(sx, sy);
     const p = latLonToWorld(ll.lat, ll.lon, newZoom);
     const size = mapSize();
     const targetCenter = worldToLatLon(p.x - sx + size.w / 2, p.y - sy + size.h / 2, newZoom);
-    animateView(newZoom, targetCenter, 140);
+    animateView(newZoom, targetCenter, 190, sx, sy);
   }
 
   function renderCategories(){
@@ -1096,130 +1138,90 @@
       if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '⬇'; }
     }
   }
-  function layerGeoJson(sub, features, method){
-    return {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
-  }
-  function uniqueZipName(base, used){
-    let name = base + '.geojson', n = 2;
-    while(used.has(name)) name = base + '-' + (n++) + '.geojson';
-    used.add(name);
-    return name;
-  }
-  async function fetchLayer(sub){
-    const query = buildQueryForSubcategory(sub);
-    if(!query) throw new Error('geen query');
-    const result = await fetchOverpassJson(query);
-    const elements = (result.json && result.json.elements) ? result.json.elements : [];
-    return {features: elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean), method: result.method};
-  }
-  async function fetchLayerWithRetry(sub){
-    try{
-      return await fetchLayer(sub);
-    }catch(err){
-      const msg = err && err.message ? err.message : String(err);
-      if(!/429|502|503|504|timeout|tijdbudget|too many|busy|bezet/i.test(msg)) throw err;
-      addDiagnostic('warn', sub.label + ': server druk, over 6 seconden nog één keer proberen...');
-      await sleep(6000);
-      return await fetchLayer(sub);
-    }
-  }
-  async function collectLayers(subs, prefixCategory, onProgress){
-    const files = [], used = new Set(), failed = [], empty = [], log = [];
-    let total = 0;
-    for(let i = 0; i < subs.length; i++){
-      const sub = subs[i];
-      if(onProgress) onProgress(i + 1, subs.length, sub);
-      try{
-        const r = await fetchLayerWithRetry(sub);
-        addDiagnostic('ok', sub.label + ': ' + r.features.length + ' objecten via ' + r.method);
-        if(r.features.length){
-          mergeFeaturesIntoState(r.features);
-          const base = (prefixCategory ? slugify(sub.category) + '__' : '') + slugify(sub.label);
-          files.push({name: uniqueZipName(base, used), content: JSON.stringify(layerGeoJson(sub, r.features, r.method), null, 2)});
-          total += r.features.length;
-          log.push('OK       ' + sub.label + ': ' + r.features.length + ' objecten');
-        }else{
-          empty.push(sub.label);
-          log.push('LEEG     ' + sub.label + ': geen objecten in dit gebied (geen bestand aangemaakt)');
-        }
-      }catch(err){
-        const msg = err && err.message ? err.message : String(err);
-        addDiagnostic('error', sub.label + ' mislukt: ' + msg);
-        failed.push(sub.label);
-        log.push('MISLUKT  ' + sub.label + ': ' + msg);
-      }
-      if(i < subs.length - 1) await sleep(LAYER_PAUSE_MS);
-    }
-    return {files, total, failed, empty, log};
-  }
-  function layerTail(res){
-    let t = '';
-    if(res.empty.length) t += ' · ' + res.empty.length + ' laag/lagen zonder objecten';
-    if(res.failed.length) t += ' · ' + res.failed.length + ' mislukt (' + res.failed.slice(0,3).join(', ') + (res.failed.length > 3 ? ', ...' : '') + ')';
-    return t;
-  }
-  function withLog(res){
-    if(res.failed.length || res.empty.length){
-      res.files.push({name:'_download-log.txt', content:'Download ' + new Date().toISOString() + '\n\n' + res.log.join('\n') + '\n'});
-    }
-    return res.files;
-  }
   async function downloadCategory(catId, btn){
     if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
-    if(btn && btn.classList.contains('busy')) return;
     if(!state.finalized) finishPolygon();
     const cat = CATEGORIES.find(c => c.id === catId);
     if(!cat){ showMessage('Onbekende categorie: ' + catId, 'error'); return; }
     resetDiagnostics();
     addDiagnostic('info', 'Download categorie "' + cat.title + '" (' + cat.subs.length + ' subcategorieen) gestart...');
     const originalLabel = btn ? btn.textContent : '';
-    if(btn){ btn.classList.add('busy'); btn.classList.remove('done'); btn.textContent = '0/' + cat.subs.length; }
-    const subs = cat.subs.map(s => ({...s, category: cat.title}));
-    let res;
-    try{
-      res = await collectLayers(subs, false, (i, n, sub) => {
-        if(btn) btn.textContent = i + '/' + n;
-        showMessage('Ophalen ' + i + '/' + n + ': ' + sub.label + '...', '');
-      });
-    }finally{
-      renderResults(); renderMap();
+    if(btn){ btn.classList.add('busy'); btn.classList.remove('done'); btn.textContent = 'Bezig...'; }
+    const files = [];
+    let totalFeatures = 0;
+    const failed = [];
+    for(const subRef of cat.subs){
+      const sub = {...subRef, category: cat.title};
+      const query = buildQueryForSubcategory(sub);
+      if(!query){ failed.push(sub.label + ': geen query'); continue; }
+      try{
+        const result = await fetchOverpassJson(query);
+        const elements = (result.json && result.json.elements) ? result.json.elements : [];
+        addDiagnostic('ok', sub.label + ': ' + elements.length + ' objecten via ' + result.method);
+        const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
+        if(features.length){
+          mergeFeaturesIntoState(features);
+          const geojson = {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + result.method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
+          files.push({name: slugify(sub.label) + '.geojson', content: JSON.stringify(geojson, null, 2)});
+          totalFeatures += features.length;
+        }
+      }catch(err){
+        const msg = err && err.message ? err.message : String(err);
+        addDiagnostic('error', sub.label + ' mislukt: ' + msg);
+        failed.push(sub.label);
+      }
     }
-    if(res.files.length === 0){
+    renderMap();
+    if(files.length === 0){
       if(btn){ btn.classList.remove('busy'); btn.textContent = originalLabel || '⬇ ZIP'; }
-      showMessage('Geen data opgehaald voor categorie ' + cat.title + layerTail(res) + '. Zie Diagnose.', 'error');
+      showMessage('Geen data opgehaald voor categorie ' + cat.title + '. Zie Diagnose.', 'error');
       return;
     }
-    const nLayers = res.files.length;
+    const zipBlob = makeZip(files);
     const filename = slugify(cat.title) + '.zip';
-    downloadBlob(filename, makeZip(withLog(res)), 'application/zip');
-    if(btn){ btn.classList.remove('busy'); btn.classList.add('done'); btn.textContent = '✓ ' + res.total; setTimeout(() => { btn.classList.remove('done'); btn.textContent = originalLabel || '⬇ ZIP'; }, 4000); }
-    showMessage('Gedownload: ' + filename + ' met ' + nLayers + ' lagen (' + res.total + ' objecten)' + layerTail(res) + '.', res.failed.length ? '' : 'ok');
+    downloadBlob(filename, zipBlob, 'application/zip');
+    if(btn){ btn.classList.remove('busy'); btn.classList.add('done'); btn.textContent = '✓ ' + totalFeatures; setTimeout(() => { btn.classList.remove('done'); btn.textContent = originalLabel || '⬇ ZIP'; }, 4000); }
+    const tail = failed.length ? ' (' + failed.length + ' mislukt, zie Diagnose)' : '';
+    showMessage('Gedownload: ' + filename + ' met ' + files.length + ' lagen (' + totalFeatures + ' objecten)' + tail + '.', 'ok');
   }
   async function downloadAllSelectedZip(){
     if(state.points.length < 3){ showMessage('Teken eerst een polygoon van minimaal 3 hoekpunten.', 'error'); return; }
-    const btn = document.getElementById('zipAllBtn');
-    if(btn && btn.classList.contains('busy')) return;
     if(!state.finalized) finishPolygon();
     const selected = selectedSubcategories();
     if(selected.length === 0){ showMessage('Selecteer minimaal 1 subcategorie.', 'error'); return; }
+    const btn = document.getElementById('zipAllBtn');
     const originalLabel = btn ? btn.textContent : '';
-    if(btn){ btn.classList.add('busy'); btn.disabled = true; btn.textContent = 'Bezig... 0/' + selected.length; }
+    if(btn){ btn.disabled = true; btn.textContent = 'Bezig met ophalen...'; }
     resetDiagnostics();
     addDiagnostic('info', 'ZIP-download van ' + selected.length + ' geselecteerde subcategorieen gestart...');
-    let res;
-    try{
-      res = await collectLayers(selected, true, (i, n, sub) => {
-        if(btn) btn.textContent = 'Bezig... ' + i + '/' + n + ' · ' + sub.label;
-        showMessage('Ophalen ' + i + '/' + n + ': ' + sub.label + '...', '');
-      });
-    }finally{
-      renderResults(); renderMap();
-      if(btn){ btn.classList.remove('busy'); btn.disabled = false; btn.textContent = originalLabel || '⬇ Download alle geselecteerde als ZIP'; updateSubDownloadButtons(); }
+    const files = [];
+    let total = 0;
+    const failed = [];
+    for(const sub of selected){
+      const query = buildQueryForSubcategory(sub);
+      if(!query){ failed.push(sub.label); continue; }
+      try{
+        const result = await fetchOverpassJson(query);
+        const elements = (result.json && result.json.elements) ? result.json.elements : [];
+        addDiagnostic('ok', sub.label + ': ' + elements.length + ' via ' + result.method);
+        const features = elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean);
+        if(features.length){
+          mergeFeaturesIntoState(features);
+          const geo = {type:'FeatureCollection', name:sub.label, metadata:{generated:new Date().toISOString(), source:'OpenStreetMap via ' + result.method, subcategorie:sub.label, categorie:sub.category, polygon:state.points.map(p => [p.lon, p.lat])}, features};
+          files.push({name: slugify(sub.category) + '__' + slugify(sub.label) + '.geojson', content: JSON.stringify(geo, null, 2)});
+          total += features.length;
+        }
+      }catch(err){
+        failed.push(sub.label + ': ' + (err && err.message ? err.message : err));
+        addDiagnostic('error', sub.label + ' mislukt: ' + (err && err.message ? err.message : err));
+      }
     }
-    if(!res.files.length){ showMessage('Geen enkele laag leverde objecten op' + layerTail(res) + '. Zie Diagnose.', 'error'); return; }
-    const nLayers = res.files.length;
-    downloadBlob('osm-omgevingsdata-' + Date.now() + '.zip', makeZip(withLog(res)), 'application/zip');
-    showMessage('Gedownload: ZIP met ' + nLayers + ' lagen (' + res.total + ' objecten)' + layerTail(res) + '.', res.failed.length ? '' : 'ok');
+    renderMap();
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel || '⬇ Download alle geselecteerde als ZIP'; }
+    if(!files.length){ showMessage('Geen enkele laag kon worden opgehaald. Zie Diagnose.', 'error'); return; }
+    const zipBlob = makeZip(files);
+    downloadBlob('osm-omgevingsdata-' + Date.now() + '.zip', zipBlob, 'application/zip');
+    showMessage('Gedownload: ZIP met ' + files.length + ' lagen (' + total + ' objecten)' + (failed.length ? ' — ' + failed.length + ' mislukt (zie Diagnose)' : '') + '.', 'ok');
   }
   function showFallbackDownload(sub, directUrl, query){
     if(!els.diagBox) return;
@@ -1265,18 +1267,15 @@
     if(!geometry) return null;
     return {type:'Feature', properties:{categorie:sub.category, subcategorie:sub.label, osm_type:el.type, osm_id:el.id, ...tags}, geometry};
   }
-  let _anonId = 0;
   function mergeFeaturesIntoState(features){
-    const idOf = f => (f.properties.osm_type || 'x') + '/' + (f.properties.osm_id != null ? f.properties.osm_id : ('anon' + (++_anonId)));
-    const seenAll = new Set(state.features.map(idOf));
-    const grouped = state.grouped || {};
-    features.forEach(f => {
-      const id = idOf(f);
-      const label = f.properties.subcategorie || 'Overig';
-      if(!grouped[label]) grouped[label] = [];
-      // per laag ontdubbelen, maar hetzelfde object mag wel in meerdere lagen voorkomen
-      if(!grouped[label].some(x => x.properties.osm_type === f.properties.osm_type && x.properties.osm_id === f.properties.osm_id)) grouped[label].push(f);
-      if(!seenAll.has(id)){ state.features.push(f); seenAll.add(id); }
+    const key = f => (f.properties.osm_type || 'x') + '/' + (f.properties.osm_id || Math.random());
+    const seen = new Set(state.features.map(key));
+    features.forEach(f => { if(!seen.has(key(f))){ state.features.push(f); seen.add(key(f)); } });
+    const grouped = {};
+    state.features.forEach(f => {
+      const g = f.properties.subcategorie || 'Overig';
+      if(!grouped[g]) grouped[g] = [];
+      grouped[g].push(f);
     });
     state.grouped = grouped;
   }
@@ -1387,7 +1386,7 @@
 
   function compactError(err){
     const msg = err && err.message ? err.message : String(err || 'onbekende fout');
-    if((err && err.name === 'AbortError') || msg.includes('AbortError') || /aborted/i.test(msg)) return 'timeout';
+    if(msg.includes('AbortError')) return 'timeout';
     if(msg.includes('Failed to fetch') || msg.includes('NetworkError')) return 'browser/CORS-blokkade of netwerkfout';
     return msg.replace(/\s+/g, ' ').slice(0, 210);
   }
@@ -1412,21 +1411,24 @@
   async function fetchOverpassGet(endpoint, query){
     const host = endpointHost(endpoint);
     const url = overpassGetUrl(endpoint, query);
-    return fetchJsonTimed(url, {method:'GET', mode:'cors'}, FETCH_TIMEOUT_MS, host + ' direct GET');
+    const res = await fetchWithTimeout(url, {method:'GET', mode:'cors'}, FETCH_TIMEOUT_MS);
+    return readJsonResponse(res, host + ' direct GET');
   }
 
   async function fetchOverpassPost(endpoint, query){
     const host = endpointHost(endpoint);
     const body = new URLSearchParams();
     body.set('data', query);
-    return fetchJsonTimed(endpoint, {method:'POST', mode:'cors', body}, FETCH_TIMEOUT_MS, host + ' direct POST');
+    const res = await fetchWithTimeout(endpoint, {method:'POST', mode:'cors', body}, FETCH_TIMEOUT_MS);
+    return readJsonResponse(res, host + ' direct POST');
   }
 
   async function fetchOverpassViaProxy(endpoint, query, proxy){
     const host = endpointHost(endpoint);
     const sourceUrl = overpassGetUrl(endpoint, query);
     const proxyUrl = proxy.build(sourceUrl);
-    return fetchJsonTimed(proxyUrl, {method:'GET', mode:'cors'}, PROXY_TIMEOUT_MS, proxy.name + ' -> ' + host);
+    const res = await fetchWithTimeout(proxyUrl, {method:'GET', mode:'cors'}, PROXY_TIMEOUT_MS);
+    return readJsonResponse(res, proxy.name + ' -> ' + host);
   }
 
   // JSONP wordt niet ondersteund door Overpass API; die attempt-tak is verwijderd.
@@ -1438,8 +1440,10 @@
     const proxyEndpoints = OVERPASS_ENDPOINTS.slice(0,3);
     const preferProxy = location.protocol === 'file:' || location.origin === 'null';
     function addDirectAttempts(){
-      for(const endpoint of directEndpoints) attempts.push({kind:'direct-post', endpoint});
-      for(const endpoint of directEndpoints.slice(0,2)) attempts.push({kind:'direct-get', endpoint});
+      for(const endpoint of directEndpoints){
+        attempts.push({kind:'direct-post', endpoint});
+        attempts.push({kind:'direct-get', endpoint});
+      }
     }
     function addProxyAttempts(){
       for(const endpoint of proxyEndpoints){
@@ -1454,9 +1458,7 @@
       addDirectAttempts();
       addProxyAttempts();
     }
-    const deadline = Date.now() + LAYER_BUDGET_MS;
     for(const attempt of attempts){
-      if(Date.now() > deadline){ lastError = (lastError ? lastError + ' ' : '') + '(tijdbudget voor deze laag is op)'; break; }
       const host = endpointHost(attempt.endpoint);
       const label = (attempt.kind === 'proxy' && attempt.proxy ? attempt.proxy.name + ' -> ' : '') + host + ' (' + attempt.kind + ')';
       try{
@@ -1478,7 +1480,6 @@
         const errMsg = compactError(err);
         lastError = (attempt.kind === 'proxy' && attempt.proxy ? attempt.proxy.name + ' -> ' : '') + host + ': ' + errMsg;
         try{ addDiagnostic('warn', label + ' -> ' + errMsg); }catch(_){}
-        if(/status (429|502|503|504)/.test(errMsg)) await sleep(2500);   // server is druk: even ademhalen
       }
     }
     throw new Error(lastError || 'geen Overpass-server bereikbaar');
@@ -1577,15 +1578,13 @@
           doneHosts.add(result.host + ' via ' + result.method);
           const elements = (result.json && result.json.elements) ? result.json.elements : [];
           allElements.push(...elements);
-          mergeFeaturesIntoState(elements.map(el => elementToFeatureForSub(el, sub)).filter(Boolean));
-          renderResults(); renderMap();
+          handleOverpassResult({elements:allElements});
           showMessage('Ophalen ' + (i + 1) + '/' + selected.length + ' klaar: ' + sub.label + ' (' + elements.length + ' objecten).', 'ok');
         }catch(err){
           const msg = err && err.message ? err.message : String(err);
           failed.push(sub.label + ': ' + msg);
-          renderResults(); renderMap();
+          handleOverpassResult({elements:allElements});
         }
-        if(i < selected.length - 1) await sleep(LAYER_PAUSE_MS);
       }
 
       if(allElements.length === 0 && failed.length){
@@ -1696,11 +1695,10 @@
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
-    a.rel = 'noopener';
-    a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
-    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 60000);   // direct intrekken laat downloads mislukken
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   function makeZip(files){
